@@ -1,0 +1,52 @@
+---
+
+name: Publishes VIP Changelogs
+inputs:
+  endpoint:
+    description: 'The endpoint to post the changelog.'
+    required: false
+    default: 'https://public-api.wordpress.com/wp/v2/sites/vipinternalchangelog.wordpress.com/posts'
+  endpoint-token:
+    description: 'The WordPress token required in order to post to the WordPress endpoint.'
+    required: true
+  repo-token:
+    description: 'The GitHub token required in order to retrieve Pull Requests.'
+    required: true
+  status:
+    description: 'Status of the post about to be published. Can be either "publish" or "draft".'
+    required: false
+    default: 'publish'
+  tag-id:
+    description: 'The id of a tag to be added to the post.'
+    required: false
+    default: ''
+  link-to-pr:
+    description: 'Wether to add a link to the Pull Request to the changelog post.'
+    required: false
+    default: false
+runs:
+  using: "composite"
+  steps:
+    - name: Setup PHP
+      uses: "shivammathur/setup-php@v2"
+      with:
+        php-version: "7.4"
+
+    - name: Installs automattic/vip-build-tools
+      run: composer require automattic/vip-build-tools:1.0.6
+      shell: bash
+
+    - name: Publishes the changelog
+      run: |
+        php vendor/automattic/vip-build-tools/scripts/github-changelog.php \
+          --wp-endpoint=${{ inputs.endpoint }} \
+          --wp-status=${{ inputs.status }} \
+          --wp-tag-ids=${{ inputs.tag-id }} \
+          --link-to-pr=${{ inputs.link-to-pr }}
+      shell: bash
+      env:
+        CHANGELOG_POST_TOKEN: ${{ inputs.endpoint-token }}
+        GITHUB_TOKEN: ${{ inputs.repo-token }}
+        CIRCLE_PROJECT_USERNAME: ${{ github.repository_owner }}
+        CIRCLE_PROJECT_REPONAME: ${{ github.event.repository.name }}
+        CIRCLE_SHA1: ${{ github.sha }}
