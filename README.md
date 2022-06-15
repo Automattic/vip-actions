@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: Automattic/vip-actions@v1
+      - uses: Automattic/vip-actions/changelog@v1
         with:
           endpoint-token: ${{ secrets.CHANGELOG_POST_TOKEN }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
