@@ -11,7 +11,8 @@ inputs:
     required: true
   repo-token:
     description: 'The GitHub token required in order to retrieve Pull Requests.'
-    required: true
+    required: false
+    default: "${{ github.token }}"
   status:
     description: 'Status of the post about to be published. Can be either "publish" or "draft".'
     required: false
