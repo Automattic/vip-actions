@@ -22,9 +22,17 @@ inputs:
     required: false
     default: ''
   link-to-pr:
-    description: 'Wether to add a link to the Pull Request to the changelog post.'
+    description: 'Whether to add a link to the Pull Request to the changelog post.'
     required: false
     default: 'false'
+  start-marker:
+    description: 'A string inside the PR description that marks the start of the changelog post.'
+    required: false
+    default: '<h2>Changelog Description'
+  end-marker:
+    description: 'A string inside the PR description that marks the end of the changelog post.'
+    required: false
+    default: '<h2>'
 runs:
   using: "composite"
   steps:
@@ -43,7 +51,9 @@ runs:
           --wp-endpoint='${{ inputs.endpoint }}' \
           --wp-status='${{ inputs.status }}' \
           --wp-tag-ids='${{ inputs.tag-id }}' \
-          --link-to-pr='${{ inputs.link-to-pr }}'
+          --link-to-pr='${{ inputs.link-to-pr }}' \
+          --start-marker='${{ inputs.start-marker }}' \
+          --end-marker='${{ inputs.end-marker }}'
       shell: bash
       env:
         CHANGELOG_POST_TOKEN: ${{ inputs.endpoint-token }}
