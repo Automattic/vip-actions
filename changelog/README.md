@@ -12,6 +12,8 @@ For more info about the tool it uses under the hood, see: https://github.com/Aut
   * `status`: the status of the post to be published. Can be either `publish` (the default) or `draft`.
   * `tag-id`: the ID of a tag to be added to the post, empty by default. Can be a comma-separated list of tag IDs.
   * `link-to-pr`: whether to add a link to the pull request to the changelog post, `false` by default.
+  * `start-marker`: a string inside the PR description that marks the **start** of the changelog post. Defaults to `<h2>Changelog Description`.
+  * `end-marker`: a string inside the PR description that marks the **end** of the changelog post. Defaults to `<h2>`.
 
 #### Example
 
