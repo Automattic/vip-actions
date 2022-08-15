@@ -106,7 +106,7 @@ echo "✅ Bumped version to $NEW_RELEASE_VERSION and created new tag"
 
 # git push
 echo_title "git push"
-git push && git push --tags
+git push --follow-tags
 echo "✅ Pushed version bump and tags"
 
 # Publish
