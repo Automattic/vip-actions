@@ -39,6 +39,7 @@ runs:
           no activity within ${{ inputs.days-before-close }} days, it will be
           closed.
 
+
           Please note that this is not a comment on the quality of this issue
           or on the work done so far. It is simply an automation to keep
           issues manageable, focused, and up-to-date. Closed issues are still
@@ -49,6 +50,7 @@ runs:
           ${{ inputs.days-before-stale }} days with no activity. If there is
           no activity within ${{ inputs.days-before-close }} days, it will be
           closed.
+
 
           Please note that this is not a comment on the quality of this pull
           request or on the work done so far. It is simply an automation to
