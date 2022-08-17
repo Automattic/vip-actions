@@ -40,10 +40,10 @@ runs:
           closed.
 
 
-          Please note that this is not a comment on the quality of this issue
-          or on the work done so far. It is simply an automation to keep
-          issues manageable, focused, and up-to-date. Closed issues are still
-          valuable to the project and are available to be searched.
+          This is an automation to keep issues manageable and actionable and is
+          not a comment on the quality of this issue nor on the work done so
+          far. Closed issues are still valuable to the project and are
+          available to be searched.
         stale-pr-label: "[Status] Stale"
         stale-pr-message: >
           This pull request has been marked stale because it has been open for
@@ -52,10 +52,10 @@ runs:
           closed.
 
 
-          Please note that this is not a comment on the quality of this pull
-          request or on the work done so far. It is simply an automation to
-          keep pull requests manageable and actionable. Closed PRs are still
-          valuable to the project and their branches are preserved.
+          This is an automation to keep pull requests manageable and actionable
+          and is not a comment on the quality of this pull request nor on the
+          work done so far. Closed PRs are still valuable to the project and
+          their branches are preserved.
     - name: Print outputs
       shell: bash
       run: echo ${{ join(steps.stale.outputs.*, ',') }}
