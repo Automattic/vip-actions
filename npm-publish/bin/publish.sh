@@ -7,7 +7,7 @@ set -o pipefail  # error if piped command fails
 
 # Default variables
 RELEASE_TYPE=
-MAIN_BRANCH="trunk"
+MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 
 echo_title() {
 	echo ""
