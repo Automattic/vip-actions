@@ -76,14 +76,16 @@ echo "✅ No local changes found"
 ### TODO=====================
 
 # Install
-echo_title "npm ci"
-npm ci
-echo "✅ Clean install looks good"
+echo_title "npm ci + test"
 
-# Test
-echo_title "npm test"
-npm test
-echo "✅ Tests look good"
+# Install dependencies but skip pre/post scripts since our auth token is in place
+npm ci --ignore-scripts
+
+# Run scripts + tests without auth token to prevent malicious access
+NODE_AUTH_TOKEN= npm rebuild
+NODE_AUTH_TOKEN= npm run prepare --if-present
+NODE_AUTH_TOKEN= npm test
+echo "✅ npm install + npm test look good"
 
 ### DEBUG=====================
 ### echo "EARLY EXIT BEFORE PUBLISH"
