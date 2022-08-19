@@ -7,7 +7,6 @@ The initial code was inspired by https://help.github.com/actions/language-and-fr
 ## Inputs
 
 * `release_type`: the [npm version type (major|minor|patch)](https://docs.npmjs.com/cli/v8/commands/npm-version) we're releasing.
-
 * `NPM_TOKEN`: the npm token used to publish the package.
 
 ## Example
@@ -15,7 +14,7 @@ The initial code was inspired by https://help.github.com/actions/language-and-fr
 The following set up the release flow to be manually triggered from the Actions section.
 
 ```yaml
-name: Release
+name: npm publish
 on:
   workflow_dispatch:
     inputs:
@@ -40,10 +39,10 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
-The following triggers a release on every push to trunk (note: every release will be a patch update):
+The following triggers a release on every push to `trunk` (note: every release will be a patch update):
 
 ```yaml
-name: Release
+name: npm publish
 on:
   push:
     branches:
