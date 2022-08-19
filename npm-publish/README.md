@@ -6,12 +6,13 @@ The initial code was inspired by https://help.github.com/actions/language-and-fr
 
 ## Inputs
 
-* `release_type`: the [npm version type (major|minor|patch)](https://docs.npmjs.com/cli/v8/commands/npm-version) we're releasing.
-* `NPM_TOKEN`: the npm token used to publish the package.
+* `NPM_TOKEN`: (required) the npm token used to publish the package.
+* `npm-version-type`: (optional) the [npm version type (major|minor|patch)](https://docs.npmjs.com/cli/v8/commands/npm-version) we're publishing.
+* `node-version`: (options) the Node.js version to use for the Action
 
 ## Example
 
-The following set up the release flow to be manually triggered from the Actions section.
+The following sets up the publishing flow to be manually triggered from the Actions section:
 
 ```yaml
 name: npm publish
@@ -19,8 +20,8 @@ on:
   workflow_dispatch:
     inputs:
       # This is copied from npm-publish/action.yml
-      release_type:
-        description: 'The npm version type we are releasing.'
+      npm-version-type:
+        description: 'The npm version type we are publishing.'
         required: true
         type: choice
         default: 'patch'
@@ -33,13 +34,13 @@ jobs:
   publish:
     name: Publish to npm
     steps:
-      - uses: Automattic/vip-actions/npm-publish@v1
+      - uses: Automattic/vip-actions/npm-publish
         with:
-          release_type: ${{ inputs.release_type }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm-version-type: ${{ inputs.npm-version-type }}
 ```
 
-The following triggers a release on every push to `trunk` (note: every release will be a patch update):
+The following triggers a publish on every push to `trunk` (note: every release will be a patch update since `npm-version-type` is not specified):
 
 ```yaml
 name: npm publish
@@ -52,7 +53,7 @@ jobs:
   publish:
     name: Publish to npm
     steps:
-      - uses: Automattic/vip-actions/npm-publish@v1
+      - uses: Automattic/vip-actions/npm-publish
         with:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```

@@ -6,7 +6,7 @@ set -o nounset   # error on undefined vars
 set -o pipefail  # error if piped command fails
 
 # Default variables
-RELEASE_TYPE=
+NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 
 echo_title() {
@@ -18,7 +18,7 @@ while getopts ":t:" option;
 do
 	case $option in
 		# npm major/minor/patch
-		t) RELEASE_TYPE=$OPTARG ;;
+		t) NPM_VERSION_TYPE=$OPTARG ;;
 
 		\?) echo "Error: Invalid param / option specified"
 			exit 199 ;;
@@ -26,7 +26,7 @@ do
 done
 
 # Validate release type value
-if [ "$RELEASE_TYPE" != "major" ] && [ "$RELEASE_TYPE" != "minor" ] && [ "$RELEASE_TYPE" != "patch" ]; then
+if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
 	echo "❌ Invalid release type specified. Please make sure the -t flag is one of major/minor/patch."
 	exit 200
 fi
@@ -39,7 +39,7 @@ LOCAL_BRANCH=$(git branch --show-current)
 REMOTE_VERSION=$(npm view "$LOCAL_NAME" version)
 echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
-echo "✅ Will publish new $RELEASE_TYPE release"
+echo "✅ Will publish new $NPM_VERSION_TYPE release"
 
 # Validate npm is logged in and ready
 echo_title "Checking npm auth"
@@ -101,8 +101,8 @@ echo "✅ Dry run looks good"
 
 # npm version bump + git tag
 echo_title "npm version"
-NEW_RELEASE_VERSION=$( npm version "$RELEASE_TYPE" -m "Publishing new $RELEASE_TYPE version: %s" )
-echo "✅ Bumped version to $NEW_RELEASE_VERSION and created new tag"
+NEW_VERSION=$( npm version "$NPM_VERSION_TYPE" -m "Publishing new $NPM_VERSION_TYPE version: %s" )
+echo "✅ Bumped version to $NEW_VERSION and created new tag"
 
 # git push
 echo_title "git push"
@@ -112,7 +112,7 @@ echo "✅ Pushed version bump and tags"
 # Publish
 echo_title "npm publish"
 npm publish --access public
-echo "✅ Successfully published new '$RELEASE_TYPE' release for $LOCAL_NAME as $NEW_RELEASE_VERSION"
+echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
 
 # Version bump to dev
 # Not needed for release branches so we only do on the main branch
@@ -120,9 +120,9 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	echo_title "npm version (to next dev)"
 
 	NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
-	if [ "$RELEASE_TYPE" == "major" ]; then
+	if [ "$NPM_VERSION_TYPE" == "major" ]; then
 		NEXT_LOCAL_DEV_VERSION_TYPE="preminor"
-	elif [ "$RELEASE_TYPE" == "minor" ]; then
+	elif [ "$NPM_VERSION_TYPE" == "minor" ]; then
 		NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
 	fi
 
