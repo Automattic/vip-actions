@@ -1,0 +1,45 @@
+---
+
+name: Publish package to npm
+description: This action automates various aspects of publishing a package to the npm registry including running tests, versioning, and tagging.
+inputs:
+  NPM_TOKEN:
+    description: 'The npm token used to publish the package.'
+    required: true
+  npm-version-type:
+    description: 'The npm version type we are publishing.'
+    required: true
+    type: choice
+    default: 'patch'
+    options:
+      - patch
+      - minor
+      - major
+  node-version:
+    description: 'The Node.js version to use in the Action'
+    required: false
+    default: 'lts/*'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: https://registry.npmjs.org/
+
+    - name: git config
+      shell: bash
+      run: |
+        git config --global user.name "WordPress VIP Bot"
+        git config --global user.email "<22917138+wpcomvip-bot@users.noreply.github.com>"
+
+    - name: Validate & Publish
+      shell: bash
+      run: ./bin/publish.sh -t ${{ inputs.npm-version-type }}
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
