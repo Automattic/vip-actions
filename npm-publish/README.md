@@ -33,6 +33,7 @@ on:
 jobs:
   publish:
     name: Publish to npm
+    runs-on: ubuntu-latest
     steps:
       - uses: Automattic/vip-actions/npm-publish
         with:
@@ -52,6 +53,7 @@ on:
 jobs:
   publish:
     name: Publish to npm
+    runs-on: ubuntu-latest
     steps:
       - uses: Automattic/vip-actions/npm-publish
         with:
