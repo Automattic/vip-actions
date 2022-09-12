@@ -4,6 +4,10 @@ This action makes it easy to publish to npm using GitHub Actions after running s
 
 The initial code was inspired by https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
 
+## Usage Notes
+
+- If you require any form of clean + build to be run prior to publishing, do so via an npm script called `prepare`. The action triggers `npm run prepare --if-present` as part of the install and test step.
+
 ## Inputs
 
 * `NPM_TOKEN`: (required) the npm token used to publish the package.
