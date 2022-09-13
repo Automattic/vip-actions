@@ -40,6 +40,8 @@ runs:
 
     - name: Validate & Publish
       shell: bash
-      run: ./bin/publish.sh -t ${{ inputs.npm-version-type }}
+      # Must use `github.action_path` since the script is located in a separate checkout than the calling repo.
+      # @see https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun
+      run: ${{ github.action_path }}/bin/publish.sh -t ${{ inputs.npm-version-type }}
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
