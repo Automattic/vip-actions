@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -x
 set -o errexit   # exit on error
 set -o errtrace  # exit on error within function/sub-shell
 set -o nounset   # error on undefined vars
