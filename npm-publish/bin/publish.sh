@@ -80,7 +80,8 @@ echo "✅ No local changes found"
 echo_title "npm ci + test"
 
 # Install dependencies but skip pre/post scripts since our auth token is in place
-npm ci --ignore-scripts
+npm ci
+#npm ci --ignore-scripts
 
 # Run scripts + tests without auth token to prevent malicious access
 NODE_AUTH_TOKEN= npm rebuild
