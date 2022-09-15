@@ -53,10 +53,10 @@ echo "✅ Logged in as $NPM_USER and ready to publish"
 # Validate current branch
 echo_title "Checking branch"
 # TODO: add support for release/** branch via [ ! "$LOCAL_BRANCH" == "$RELEASE_BRANCH_PATTERN" ] -- will need to add version checking support as well
-if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
-	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
-	exit 202
-fi
+#if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
+#	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
+#	exit 202
+#fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 
 # Validate no uncommitted changes.
