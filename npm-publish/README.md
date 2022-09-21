@@ -4,9 +4,28 @@ This action makes it easy to publish to npm using GitHub Actions after running s
 
 The initial code was inspired by https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
 
-## Usage Notes
+## How to Use
 
-- If you require any form of clean + build to be run prior to publishing, do so via an npm script called `prepare`. The action triggers `npm run prepare --if-present` as part of the install and test step.
+1. Add a GitHub Actions secret (Settings > Secrets > Actions) called `NPM_TOKEN` which is an automation token for the npmjs.com user you'll use to publish to npm.
+2. If you require any form of clean + build steps to be run prior to publishing, do so via an npm script called `prepare`. The publish script triggers `npm run prepare --if-present` as part of the install and test step. Here's an example snippet from `package.json` (note: it assumes you have `rimraf` installed as a `devDep`):
+
+```
+"scripts": {
+  ...
+  "prepare": "npm run clean && npm run build",
+  "clean": "rimraf dist",
+  "build": "babel src -o dist",
+  ...
+},
+```
+
+3. Copy (and, if necessary, tweak) the example below to your `.github/workflows/` folder.
+4. Go to Actions > npm publish > Run workflow.
+5. Enjoy!
+
+## Caveats
+
+This currently won't work if branch protections are enabled :( There is no way to allow GitHub Actions to bypass them (other then disabling and re-enabling them as part of the script).
 
 ## Inputs
 
