@@ -56,6 +56,3 @@ runs:
           and is not a comment on the quality of this pull request nor on the
           work done so far. Closed PRs are still valuable to the project and
           their branches are preserved.
-    - name: Print outputs
-      shell: bash
-      run: echo ${{ join(steps.stale.outputs.*, ',') }}
