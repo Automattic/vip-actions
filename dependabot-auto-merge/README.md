@@ -4,9 +4,12 @@ This action merges dependabot PRs automatically. It's currently hardcoded only f
 
 ## How to Use
 
+We assume you have already set up dependabot.
+
 To use this action, here's an example workflow:
 
 ```yaml
+# <project-root>/.github/workflow/dependabot_auto_merge.yaml
 
 name: Dependabot auto-merge
 on: pull_request_target
@@ -24,3 +27,9 @@ jobs:
       - name: Run Dependabot Auto Merge action
         uses: Automattic/vip-actions/dependabot-auto-merge
 ```
+
+Once you've created the workflow, you'll need to do the following to that particular github project:
+
+1. Go to repo in github > Settings tab > Click 'Allow auto-merge'
+2. Assuming your default branch is `trunk`, go to repo in github > Settings tab > Branch > edit `trunk` > Require status checks to pass before merging
+3. On the same page, add at least one status check/job under 'Status checks that are required.' - there's a search bar above this message so you can type that text inside that search bar to look for the status check. Usually you put your CI workflow here.
