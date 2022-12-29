@@ -3,6 +3,11 @@
 name: Dependabot auto-merge
 description: Merges Dependabot PRs automatically
 
+inputs:
+  GITHUB_TOKEN:
+    description: Github token - usually available from the variable secrets.GITHUB_TOKEN
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -15,11 +20,11 @@ runs:
       run: gh pr merge --auto --merge "$PR_URL"
       env:
         PR_URL: ${{github.event.pull_request.html_url}}
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}}
     - name: Approve a PR
       shell: bash
       if: ${{ steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major' && github.event.pull_request.user.login == 'dependabot[bot]' }}
       run: gh pr review --approve "$PR_URL"
       env:
         PR_URL: ${{github.event.pull_request.html_url}}
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}}

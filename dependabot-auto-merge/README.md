@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Run Dependabot Auto Merge action
         uses: Automattic/vip-actions/dependabot-auto-merge
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 Once you've created the workflow, you'll need to do the following to that particular github project:
