@@ -29,7 +29,7 @@ jobs:
     permissions:
       pull-requests: read
     steps:
-      - uses: Automattic/vip-actions/changelog@v1
+      - uses: Automattic/vip-actions/changelog@trunk
         with:
           endpoint-token: ${{ secrets.CHANGELOG_POST_TOKEN }}
           link-to-pr: 'true'
