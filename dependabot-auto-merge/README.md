@@ -11,8 +11,9 @@ Generally, the steps are as follow:
 1. Configure the repo to allow merging on the default branch.
 2. Enable 'Allow auto merge'.
 3. Add a workflow that uses the Dependabot Auto Merge action.
-4. Enjoy the extra hours you freed up thanks to automated merge
-
+4. Schedule dependabot every Wednesday, preferably at the start of your workday.
+5. Allow dependabot to create security PRs.
+6. Enjoy the extra hours you freed up thanks to automated merge
 
 ### How to configure the repo to allow merging on the default branch?
 
@@ -51,3 +52,31 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### How to allow dependabot to create security PRs.
+
+1. Go to https://github.com/Automattic/<your-repo-name>
+2. Assuming you have enough permissions, go to the Settings tab > On the left navbar, Code security and analysis > Dependabot alerts and Dependabot security updates > Enable both.
+3. Dependabot will create security update PRs regardless of the dependabot schedule that you've set.
+
+### How to schedule dependabot every Wednesday.
+
+Here's an example `dependabot.yml` that you can use. Place this at `.github/dependabot.yml`.
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      day: "wednesday"
+      time: "01:00" # UTC
+    reviewers:
+      - "Automattic/vip-platform-forno"
+    labels:
+      - "[Status] Needs Review"
+      - "dependencies"
+    # Allow up to 15 open pull requests at the same time
+    open-pull-requests-limit: 15
+```
+
