@@ -58,7 +58,7 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     steps:
-      - uses: Automattic/vip-actions/npm-publish
+      - uses: Automattic/vip-actions/npm-publish@trunk
         with:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           npm-version-type: ${{ inputs.npm-version-type }}
@@ -78,7 +78,7 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     steps:
-      - uses: Automattic/vip-actions/npm-publish
+      - uses: Automattic/vip-actions/npm-publish@trunk
         with:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
