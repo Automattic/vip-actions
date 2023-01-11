@@ -22,5 +22,6 @@
   "include": [
     "./src",
     "./__tests__",
+    "./global.d.ts"
   ]
 }
