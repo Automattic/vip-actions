@@ -1,5 +1,5 @@
-import github from '@actions/github';
-import core from '@actions/core';
+import * as github from '@actions/github';
+import * as core from '@actions/core';
 import { Octokit, PullRequest, PullRequestReview } from './types/Github';
 
 let octokitCache: Octokit | null = null;

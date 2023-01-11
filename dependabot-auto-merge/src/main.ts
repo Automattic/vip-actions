@@ -9,7 +9,7 @@ import promiseLimit from 'promise-limit';
 
 import { satisfies } from 'semver';
 import { PullRequest } from './types/Github';
-import github from '@actions/github';
+import * as github from '@actions/github';
 
 const organizationToRepo: Record< string, string[] > = {
 	[ github.context.repo.owner ]: [ github.context.repo.repo ],
