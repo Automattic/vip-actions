@@ -5,9 +5,10 @@
   "main": "./dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild ./src/main.ts --bundle --minify --outfile=dist/main.js --platform=node --target=node16",
+    "build": "esbuild ./src/main.ts --bundle --outfile=dist/main.js --platform=node --target=node16",
     "build:dev": "esbuild ./src/main.ts --bundle --sourcemap --outfile=dist-dev/main.js --platform=node --target=node16",
     "check-types": "tsc",
+    "update-dist": "npm run build; git add dist/main.js; git commit -m \"Update dist\"; git push -u; git log",
     "postinstall": "cd .. && npm install"
   },
   "author": "",
