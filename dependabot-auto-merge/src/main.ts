@@ -108,7 +108,7 @@ async function markAutoMergePullRequest(
 	} catch ( e ) {
 		const error = e as Error;
 		console.error(
-			`Merge pull request failed for ${ pullRequest.number } on organization ${ organization } and repository ${ repository } with error ${ error.message }`
+			`Merge pull request failed for ${ pullRequest.number } on organization ${ organization } and repository ${ repository } with error ${ error.message }. Stack trace: ${ error.stack }`
 		);
 	}
 }
