@@ -1,7 +1,6 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 import { Octokit, PullRequest, PullRequestReview } from './types/Github';
-import * as console from 'console';
 
 let octokitCache: Octokit | null = null;
 
@@ -156,7 +155,6 @@ export async function isPullRequestApproved(
 }
 
 export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Promise< boolean > {
-	console.log( 'pullRequest: ', JSON.stringify( pullRequest ) );
 	// language=GraphQL
 	const query = `mutation MarkAutoMergeOnPullRequest($pullRequestId: ID!) {
       enablePullRequestAutoMerge( input: {
@@ -167,7 +165,8 @@ export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Pr
 	}`;
 
 	const variables = {
-		pullRequestId: pullRequest.id,
+		// node_id is the same as the id in GraphQL
+		pullRequestId: pullRequest.node_id,
 	};
 
 	await getOctokit().graphql( query, variables );
