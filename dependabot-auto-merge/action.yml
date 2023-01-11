@@ -9,22 +9,5 @@ inputs:
     required: true
 
 runs:
-  using: "composite"
-  steps:
-    - name: Dependabot metadata
-      id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1
-    - name: Enable auto-merge for Dependabot PRs
-      shell: bash
-      if: ${{ contains(fromJson('["version-update:semver-minor", "version-update:semver-patch"]'), steps.dependabot-metadata.outputs.update-type) && github.event.pull_request.user.login == 'dependabot[bot]' }}
-      run: gh pr merge --auto --merge "$PR_URL"
-      env:
-        PR_URL: ${{github.event.pull_request.html_url}}
-        GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}}
-    - name: Approve a PR
-      shell: bash
-      if: ${{ contains(fromJson('["version-update:semver-minor", "version-update:semver-patch"]'), steps.dependabot-metadata.outputs.update-type) && github.event.pull_request.user.login == 'dependabot[bot]' }}
-      run: gh pr review --approve "$PR_URL"
-      env:
-        PR_URL: ${{github.event.pull_request.html_url}}
-        GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}}
+  using: 'node16'
+  main: 'dist/main.js'
