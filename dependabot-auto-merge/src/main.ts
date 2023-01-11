@@ -2,7 +2,7 @@ import {
 	approvePullRequest,
 	getPullRequests,
 	isPullRequestApproved,
-	markAutoMergeOnPullRequest as mergeGitHubPullRequest,
+	markAutoMergeOnPullRequest,
 } from './github';
 
 import promiseLimit from 'promise-limit';
@@ -103,7 +103,7 @@ async function mergePullRequest(
 			await approvePullRequest( pullRequest, organization, repository );
 		}
 
-		await mergeGitHubPullRequest( pullRequest, organization, repository );
+		await markAutoMergeOnPullRequest( pullRequest );
 	} catch ( e ) {
 		const error = e as Error;
 		console.error(
