@@ -155,6 +155,22 @@ export async function isPullRequestApproved(
 }
 
 export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Promise< boolean > {
+	/**
+	 *
+	 * Auto-merge will only work in the following condition:
+	 *
+	 * 1. The target repository must have allow auto-merge enabled in settings.
+	 * 2. The pull request base must have a branch protection rule with at least one requirement enabled.
+	 * 3. The pull request must be in a state where requirements have not yet been satisfied. If the pull request can already be merged, attempting to enable auto-merge will fail.
+	 *
+	 * I spent half a day debugging this especially for reason number 3,
+	 * and I hope no one has to face that issue again.
+	 *
+	 * If you're getting `["Pull request Pull request is in clean status"]` error, this is why.
+	 *
+	 * Ref: https://github.com/peter-evans/enable-pull-request-automerge#conditions
+	 */
+
 	// language=GraphQL
 	const query = `mutation MarkAutoMergeOnPullRequest($pullRequestId: ID!) {
       enablePullRequestAutoMerge( input: {
@@ -163,6 +179,8 @@ export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Pr
 					__typename
 			}
 	}`;
+
+	console.log( 'DEBUG: pullRequest before enabling merge: ', JSON.stringify( pullRequest ) );
 
 	const variables = {
 		// node_id is the same as the id in GraphQL
