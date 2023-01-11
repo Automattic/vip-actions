@@ -158,7 +158,7 @@ export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Pr
 	// language=GraphQL
 	const query = `mutation MarkAutoMergeOnPullRequest($pullRequestId: ID!) {
       enablePullRequestAutoMerge( input: {
-					pullRequestId: $pullRequestid
+					pullRequestId: $pullRequestId
 			} ) {
 					__typename
 			}
