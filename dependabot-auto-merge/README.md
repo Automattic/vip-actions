@@ -91,4 +91,4 @@ This is because your repository has additional security feature to it. To fix th
 2. Under Branch protection rules, find your default branch and press Edit. We assume it's `trunk`.
 3. Untick `Restrict who can push to matching branches`
 
-We're currently unsure if this is a safe thing to do. However, there's currentlyno way to put an exception for `dependabot` and `github-actions`
+We're currently unsure if this is a safe thing to do. However, there's currently no way to put an exception for `dependabot` and `github-actions`
