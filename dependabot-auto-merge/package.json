@@ -1,0 +1,26 @@
+{
+  "name": "dependabot-auto-merge",
+  "version": "0.1.0",
+  "description": "This action merges dependabot PRs automatically. It's currently hardcoded only for minor and patch versions.",
+  "main": "./dist/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild ./src/main.ts --bundle --minify --outfile=dist/main.js --platform=node --target=node18.13",
+    "build:dev": "esbuild ./src/main.ts --bundle --sourcemap --outfile=dist-dev/main.js --platform=node --target=node18.13",
+    "check-types": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "1.10.0",
+    "@actions/exec": "1.1.1",
+    "@actions/github": "5.1.1",
+    "promise-limit": "2.7.0",
+    "semver": "7.3.8"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.18",
+    "esbuild": "0.16.16",
+    "typescript": "4.9.4"
+  }
+}
