@@ -165,7 +165,7 @@ export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Pr
 	}`;
 
 	const variables = {
-		pullRequestNumber: pullRequest.id,
+		pullRequestId: pullRequest.id,
 	};
 
 	await getOctokit().graphql( query, variables );
