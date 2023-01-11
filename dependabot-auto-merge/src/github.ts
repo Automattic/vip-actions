@@ -1,6 +1,7 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 import { Octokit, PullRequest, PullRequestReview } from './types/Github';
+import * as console from 'console';
 
 let octokitCache: Octokit | null = null;
 
@@ -155,6 +156,7 @@ export async function isPullRequestApproved(
 }
 
 export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Promise< boolean > {
+	console.log( 'pullRequest: ', JSON.stringify( pullRequest ) );
 	// language=GraphQL
 	const query = `mutation MarkAutoMergeOnPullRequest($pullRequestId: ID!) {
       enablePullRequestAutoMerge( input: {
