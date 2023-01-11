@@ -93,7 +93,7 @@ async function checkPullRequestApprovable(
 	return pullRequest;
 }
 
-async function mergePullRequest(
+async function markAutoMergePullRequest(
 	pullRequest: PullRequest,
 	organization: string,
 	repository: string
@@ -104,6 +104,7 @@ async function mergePullRequest(
 		}
 
 		await markAutoMergeOnPullRequest( pullRequest );
+		console.log( `Pull request ${ pullRequest.title } has been marked as auto-mergeable` );
 	} catch ( e ) {
 		const error = e as Error;
 		console.error(
@@ -132,13 +133,13 @@ async function mergePullRequestsInRepository(
 		pullRequest => pullRequest
 	) as PullRequest[];
 
-	const mergePullRequestLimit = promiseLimit< void >( 1 );
+	const markAutoMergePullRequestLimit = promiseLimit< void >( 1 );
 
 	await Promise.all(
 		approvablePullRequests.map( pullRequest => {
-			return mergePullRequestLimit( () =>
-				mergePullRequest( pullRequest, organization, repository )
-			);
+			return markAutoMergePullRequestLimit( async () => {
+				markAutoMergePullRequest( pullRequest, organization, repository );
+			} );
 		} )
 	);
 }
