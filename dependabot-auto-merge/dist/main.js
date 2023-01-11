@@ -10197,6 +10197,7 @@ async function markAutoMergeOnPullRequest(pullRequest) {
 					__typename
 			}
 	}`;
+  console.log("DEBUG: pullRequest before enabling merge: ", JSON.stringify(pullRequest));
   const variables = {
     // node_id is the same as the id in GraphQL
     pullRequestId: pullRequest.node_id
