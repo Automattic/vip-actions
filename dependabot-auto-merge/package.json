@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "esbuild ./src/main.ts --bundle --minify --outfile=dist/main.js --platform=node --target=node16",
-    "build:dev": "esbuild ./src/main.ts --bundle --sourcemap --outfile=dist-dev/main.js --platform=node --target=node18.13",
+    "build:dev": "esbuild ./src/main.ts --bundle --sourcemap --outfile=dist-dev/main.js --platform=node --target=node16",
     "check-types": "tsc"
   },
   "author": "",
