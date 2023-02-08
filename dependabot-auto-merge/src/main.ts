@@ -2,7 +2,7 @@ import {
 	approvePullRequest,
 	getPullRequests,
 	isPullRequestApproved,
-	markAutoMergeOnPullRequest,
+	callMarkAutoMergePullRequestEndpoint,
 	mergePullRequest,
 } from './github';
 
@@ -11,10 +11,6 @@ import promiseLimit from 'promise-limit';
 import { satisfies } from 'semver';
 import { PullRequestFromGet } from './types/Github';
 import * as github from '@actions/github';
-
-const organizationToRepo: Record< string, string[] > = {
-	[ github.context.repo.owner ]: [ github.context.repo.repo ],
-};
 
 const PERIOD_WEEK = 604800000;
 
@@ -108,7 +104,7 @@ async function markAutoMergePullRequest(
 			await approvePullRequest( pullRequest, organization, repository );
 		}
 		try {
-			await markAutoMergeOnPullRequest( pullRequest );
+			await callMarkAutoMergePullRequestEndpoint( pullRequest );
 		} catch ( e ) {
 			const error = e as Error;
 			if (
@@ -135,18 +131,9 @@ async function mergePullRequestsInRepository(
 	now = Date.now()
 ) {
 	const pullRequests = await getPullRequests( organization, repository );
-	const approvablePullRequestLimit = promiseLimit< PullRequestFromGet | null >( 1 );
 
-	const approvablePullRequestsPromise = await Promise.all(
-		pullRequests.map( pullRequest =>
-			approvablePullRequestLimit( () =>
-				checkPullRequestApprovable( pullRequest, organization, repository, now )
-			)
-		)
-	);
-
-	const approvablePullRequests = approvablePullRequestsPromise.filter(
-		pullRequest => pullRequest
+	const approvablePullRequests = pullRequests.filter( pullRequest =>
+		checkPullRequestApprovable( pullRequest, organization, repository, now )
 	) as PullRequestFromGet[];
 
 	const markAutoMergePullRequestLimit = promiseLimit< void >( 1 );
@@ -162,23 +149,10 @@ async function mergePullRequestsInRepository(
 
 async function mergeDependabotPullRequests() {
 	const now = Date.now();
-	const organizationLimit = promiseLimit< any >( 1 );
+	const organization = github.context.repo.owner;
+	const repository = github.context.repo.repo;
 
-	await Promise.all(
-		Object.keys( organizationToRepo ).map( organization => {
-			return organizationLimit( async () => {
-				const repositories = organizationToRepo[ organization ];
-
-				const repositoryLimit = promiseLimit< any >( 1 );
-
-				await Promise.all(
-					repositories.map( repository =>
-						repositoryLimit( () => mergePullRequestsInRepository( organization, repository, now ) )
-					)
-				);
-			} );
-		} )
-	);
+	return await mergePullRequestsInRepository( organization, repository, now );
 }
 
 mergeDependabotPullRequests()

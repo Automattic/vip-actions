@@ -183,7 +183,7 @@ export async function mergePullRequest(
 	} );
 }
 
-export async function markAutoMergeOnPullRequest(
+export async function callMarkAutoMergePullRequestEndpoint(
 	pullRequest: PullRequestFromGet
 ): Promise< boolean > {
 	/**
