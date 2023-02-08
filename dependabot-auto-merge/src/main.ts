@@ -63,12 +63,12 @@ function isVersionBumpSafeToMerge( description: string ) {
 	return hasMatch;
 }
 
-async function checkPullRequestApprovable(
+function checkPullRequestApprovable(
 	pullRequest: PullRequestFromGet,
 	organization: string,
 	repository: string,
 	now = Date.now()
-): Promise< PullRequestFromGet | null > {
+): PullRequestFromGet | null {
 	try {
 		const createdAt = new Date( pullRequest.created_at ).getTime();
 		if ( now - createdAt < PERIOD_WEEK ) {
