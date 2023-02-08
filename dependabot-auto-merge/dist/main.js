@@ -10262,6 +10262,9 @@ function checkPullRequestApprovable(pullRequest, organization, repository, now =
     if (((_a = pullRequest.user) == null ? void 0 : _a.login) !== "dependabot[bot]") {
       return null;
     }
+    if (!isPullRequestMergeable(pullRequest)) {
+      return null;
+    }
     if (!isVersionBumpSafeToMerge(pullRequest.body || "")) {
       return null;
     }
