@@ -24,6 +24,8 @@ const PERIOD_WEEK = 604800000;
  * @param description Pull request description
  */
 function isVersionBumpSafeToMerge( description: string ) {
+	let hasMatch = false;
+
 	const lines = description.split( '\n' );
 	for ( const line of lines ) {
 		// two possible formats both in a new line
@@ -50,13 +52,15 @@ function isVersionBumpSafeToMerge( description: string ) {
 
 		const newVersion = match[ 2 ];
 
+		hasMatch = true;
+
 		// if at least one version does not satisfy the patch version, then it's not safe to bump version
 		if ( ! satisfies( newVersion, `^${ oldVersion }` ) ) {
 			return false;
 		}
 	}
 
-	return true;
+	return hasMatch;
 }
 
 async function checkPullRequestApprovable(
