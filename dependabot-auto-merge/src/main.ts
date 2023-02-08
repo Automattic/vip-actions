@@ -3,12 +3,13 @@ import {
 	getPullRequests,
 	isPullRequestApproved,
 	markAutoMergeOnPullRequest,
+	mergePullRequest,
 } from './github';
 
 import promiseLimit from 'promise-limit';
 
 import { satisfies } from 'semver';
-import { PullRequest } from './types/Github';
+import { PullRequestFromGet } from './types/Github';
 import * as github from '@actions/github';
 
 const organizationToRepo: Record< string, string[] > = {
@@ -63,11 +64,11 @@ function isVersionBumpSafeToMerge( description: string ) {
 }
 
 async function checkPullRequestApprovable(
-	pullRequest: PullRequest,
+	pullRequest: PullRequestFromGet,
 	organization: string,
 	repository: string,
 	now = Date.now()
-): Promise< PullRequest | null > {
+): Promise< PullRequestFromGet | null > {
 	try {
 		const createdAt = new Date( pullRequest.created_at ).getTime();
 		if ( now - createdAt < PERIOD_WEEK ) {
@@ -93,8 +94,12 @@ async function checkPullRequestApprovable(
 	return pullRequest;
 }
 
+function isPullRequestMergeable( pullRequest: PullRequestFromGet ) {
+	return pullRequest.mergeable_state === 'clean' && pullRequest.mergeable === true;
+}
+
 async function markAutoMergePullRequest(
-	pullRequest: PullRequest,
+	pullRequest: PullRequestFromGet,
 	organization: string,
 	repository: string
 ) {
@@ -102,8 +107,19 @@ async function markAutoMergePullRequest(
 		if ( ! ( await isPullRequestApproved( pullRequest, organization, repository ) ) ) {
 			await approvePullRequest( pullRequest, organization, repository );
 		}
-
-		await markAutoMergeOnPullRequest( pullRequest );
+		try {
+			await markAutoMergeOnPullRequest( pullRequest );
+		} catch ( e ) {
+			const error = e as Error;
+			if (
+				`${ error.message }`.match( /"Pull request Pull request is in clean status"/ ) &&
+				isPullRequestMergeable( pullRequest )
+			) {
+				await mergePullRequest( pullRequest, organization, repository );
+			} else {
+				throw e;
+			}
+		}
 		console.log( `Pull request ${ pullRequest.title } has been marked as auto-mergeable` );
 	} catch ( e ) {
 		const error = e as Error;
@@ -119,7 +135,7 @@ async function mergePullRequestsInRepository(
 	now = Date.now()
 ) {
 	const pullRequests = await getPullRequests( organization, repository );
-	const approvablePullRequestLimit = promiseLimit< PullRequest | null >( 1 );
+	const approvablePullRequestLimit = promiseLimit< PullRequestFromGet | null >( 1 );
 
 	const approvablePullRequestsPromise = await Promise.all(
 		pullRequests.map( pullRequest =>
@@ -131,16 +147,16 @@ async function mergePullRequestsInRepository(
 
 	const approvablePullRequests = approvablePullRequestsPromise.filter(
 		pullRequest => pullRequest
-	) as PullRequest[];
+	) as PullRequestFromGet[];
 
 	const markAutoMergePullRequestLimit = promiseLimit< void >( 1 );
 
 	await Promise.all(
-		approvablePullRequests.map( pullRequest => {
-			return markAutoMergePullRequestLimit( async () => {
-				markAutoMergePullRequest( pullRequest, organization, repository );
-			} );
-		} )
+		approvablePullRequests.map( pullRequest =>
+			markAutoMergePullRequestLimit( async () =>
+				markAutoMergePullRequest( pullRequest, organization, repository )
+			)
+		)
 	);
 }
 

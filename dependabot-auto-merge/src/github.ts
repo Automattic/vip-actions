@@ -1,6 +1,6 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
-import { Octokit, PullRequest, PullRequestReview } from './types/Github';
+import { Octokit, PullRequestFromGet, PullRequestReview } from './types/Github';
 
 let octokitCache: Octokit | null = null;
 
@@ -49,12 +49,29 @@ export async function getAllGitHubItems<
 	return items as any;
 }
 
-export async function getPullRequests( organization: string, repository: string ) {
+export async function getPullRequests(
+	organization: string,
+	repository: string
+): Promise< PullRequestFromGet[] > {
 	const octokit = getOctokit();
-	return getAllGitHubItems( octokit.rest.pulls.list, {
+	const pullRequestsFromListAPI = await getAllGitHubItems( octokit.rest.pulls.list, {
 		owner: organization,
 		repo: repository,
 	} );
+
+	return await Promise.all(
+		pullRequestsFromListAPI
+			.filter( pullRequest => pullRequest.user?.login === 'dependabot[bot]' )
+			.map( async pullRequest => {
+				const request = await octokit.rest.pulls.get( {
+					pull_number: pullRequest.number,
+					repo: repository,
+					owner: organization,
+				} );
+
+				return request.data;
+			} )
+	);
 }
 
 /**
@@ -67,7 +84,7 @@ export async function getPullRequests( organization: string, repository: string 
  * @param repository
  */
 export async function isPullRequestCheckSuccessful(
-	pullRequest: PullRequest,
+	pullRequest: PullRequestFromGet,
 	organization: string,
 	repository: string
 ) {
@@ -75,7 +92,7 @@ export async function isPullRequestCheckSuccessful(
 
 	const baseBranch = pullRequest.base.ref;
 
-	// TODO: Cache me.
+	// TODO: Get list of protections from the action's `with` field instead as `getBranchProtection` requires a personal token.
 	const branchProtectionResponse = await getOctokit().rest.repos.getBranchProtection( {
 		owner: organization,
 		repo: repository,
@@ -126,7 +143,7 @@ export async function isPullRequestCheckSuccessful(
 }
 
 export async function approvePullRequest(
-	pullRequest: PullRequest,
+	pullRequest: PullRequestFromGet,
 	organization: string,
 	repository: string
 ): Promise< PullRequestReview > {
@@ -141,7 +158,7 @@ export async function approvePullRequest(
 }
 
 export async function isPullRequestApproved(
-	pullRequest: PullRequest,
+	pullRequest: PullRequestFromGet,
 	organization: string,
 	repository: string
 ): Promise< boolean > {
@@ -154,7 +171,21 @@ export async function isPullRequestApproved(
 	return reviews.some( review => review.state === 'APPROVED' );
 }
 
-export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Promise< boolean > {
+export async function mergePullRequest(
+	pullRequest: PullRequestFromGet,
+	organization: string,
+	repository: string
+) {
+	return await getOctokit().rest.pulls.merge( {
+		pull_number: pullRequest.number,
+		repo: repository,
+		owner: organization,
+	} );
+}
+
+export async function markAutoMergeOnPullRequest(
+	pullRequest: PullRequestFromGet
+): Promise< boolean > {
 	/**
 	 *
 	 * Auto-merge will only work in the following condition:
@@ -171,14 +202,13 @@ export async function markAutoMergeOnPullRequest( pullRequest: PullRequest ): Pr
 	 * Ref: https://github.com/peter-evans/enable-pull-request-automerge#conditions
 	 */
 
-	// language=GraphQL
 	const query = `mutation MarkAutoMergeOnPullRequest($pullRequestId: ID!) {
-      enablePullRequestAutoMerge( input: {
-					pullRequestId: $pullRequestId
-			} ) {
-					__typename
-			}
-	}`;
+              enablePullRequestAutoMerge( input: {
+                  pullRequestId: $pullRequestId
+              } ) {
+                  __typename
+              }
+          }`;
 
 	console.log( 'DEBUG: pullRequest before enabling merge: ', JSON.stringify( pullRequest ) );
 

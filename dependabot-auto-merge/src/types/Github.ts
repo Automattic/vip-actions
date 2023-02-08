@@ -3,7 +3,11 @@ import type { GitHub } from '@actions/github/lib/utils';
 
 export type Octokit = InstanceType< typeof GitHub >;
 
-export type PullRequest = RestEndpointMethodTypes[ 'pulls' ][ 'list' ][ 'response' ][ 'data' ][ 0 ];
+export type PullRequestFromList =
+	RestEndpointMethodTypes[ 'pulls' ][ 'list' ][ 'response' ][ 'data' ][ 0 ];
+
+export type PullRequestFromGet =
+	RestEndpointMethodTypes[ 'pulls' ][ 'get' ][ 'response' ][ 'data' ];
 
 export type BranchProtection =
 	RestEndpointMethodTypes[ 'repos' ][ 'getBranchProtection' ][ 'response' ][ 'data' ];
