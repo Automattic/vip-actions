@@ -80,3 +80,7 @@ updates:
     # Allow up to 15 open pull requests at the same time
     open-pull-requests-limit: 15
 ```
+
+### How do we deploy?
+
+Run `npm run build`, commit `dist/main.js` and then create a PR.
