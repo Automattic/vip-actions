@@ -10167,10 +10167,23 @@ async function getAllGitHubItems(octokitCallable, params) {
 }
 async function getPullRequests(organization, repository) {
   const octokit = getOctokit2();
-  return getAllGitHubItems(octokit.rest.pulls.list, {
+  const pullRequestsFromListAPI = await getAllGitHubItems(octokit.rest.pulls.list, {
     owner: organization,
     repo: repository
   });
+  return await Promise.all(
+    pullRequestsFromListAPI.filter((pullRequest) => {
+      var _a;
+      return ((_a = pullRequest.user) == null ? void 0 : _a.login) === "dependabot[bot]";
+    }).map(async (pullRequest) => {
+      const request = await octokit.rest.pulls.get({
+        pull_number: pullRequest.number,
+        repo: repository,
+        owner: organization
+      });
+      return request.data;
+    })
+  );
 }
 async function approvePullRequest(pullRequest, organization, repository) {
   const response = await getOctokit2().rest.pulls.createReview({
@@ -10189,14 +10202,21 @@ async function isPullRequestApproved(pullRequest, organization, repository) {
   });
   return reviews.some((review) => review.state === "APPROVED");
 }
-async function markAutoMergeOnPullRequest(pullRequest) {
+async function mergePullRequest(pullRequest, organization, repository) {
+  return await getOctokit2().rest.pulls.merge({
+    pull_number: pullRequest.number,
+    repo: repository,
+    owner: organization
+  });
+}
+async function callMarkAutoMergePullRequestEndpoint(pullRequest) {
   const query = `mutation MarkAutoMergeOnPullRequest($pullRequestId: ID!) {
-      enablePullRequestAutoMerge( input: {
-					pullRequestId: $pullRequestId
-			} ) {
-					__typename
-			}
-	}`;
+              enablePullRequestAutoMerge( input: {
+                  pullRequestId: $pullRequestId
+              } ) {
+                  __typename
+              }
+          }`;
   console.log("DEBUG: pullRequest before enabling merge: ", JSON.stringify(pullRequest));
   const variables = {
     // node_id is the same as the id in GraphQL
@@ -10210,9 +10230,6 @@ async function markAutoMergeOnPullRequest(pullRequest) {
 var import_promise_limit = __toESM(require_promise_limit());
 var import_semver = __toESM(require_semver2());
 var github2 = __toESM(require_github());
-var organizationToRepo = {
-  [github2.context.repo.owner]: [github2.context.repo.repo]
-};
 var PERIOD_WEEK = 6048e5;
 function isVersionBumpSafeToMerge(description) {
   const lines = description.split("\n");
@@ -10255,12 +10272,24 @@ async function checkPullRequestApprovable(pullRequest, organization, repository,
   }
   return pullRequest;
 }
+function isPullRequestMergeable(pullRequest) {
+  return pullRequest.mergeable_state === "clean" && pullRequest.mergeable === true;
+}
 async function markAutoMergePullRequest(pullRequest, organization, repository) {
   try {
     if (!await isPullRequestApproved(pullRequest, organization, repository)) {
       await approvePullRequest(pullRequest, organization, repository);
     }
-    await markAutoMergeOnPullRequest(pullRequest);
+    try {
+      await callMarkAutoMergePullRequestEndpoint(pullRequest);
+    } catch (e) {
+      const error = e;
+      if (`${error.message}`.match(/"Pull request Pull request is in clean status"/) && isPullRequestMergeable(pullRequest)) {
+        await mergePullRequest(pullRequest, organization, repository);
+      } else {
+        throw e;
+      }
+    }
     console.log(`Pull request ${pullRequest.title} has been marked as auto-mergeable`);
   } catch (e) {
     const error = e;
@@ -10271,42 +10300,23 @@ async function markAutoMergePullRequest(pullRequest, organization, repository) {
 }
 async function mergePullRequestsInRepository(organization, repository, now = Date.now()) {
   const pullRequests = await getPullRequests(organization, repository);
-  const approvablePullRequestLimit = (0, import_promise_limit.default)(1);
-  const approvablePullRequestsPromise = await Promise.all(
-    pullRequests.map(
-      (pullRequest) => approvablePullRequestLimit(
-        () => checkPullRequestApprovable(pullRequest, organization, repository, now)
-      )
-    )
-  );
-  const approvablePullRequests = approvablePullRequestsPromise.filter(
-    (pullRequest) => pullRequest
+  const approvablePullRequests = pullRequests.filter(
+    (pullRequest) => checkPullRequestApprovable(pullRequest, organization, repository, now)
   );
   const markAutoMergePullRequestLimit = (0, import_promise_limit.default)(1);
   await Promise.all(
-    approvablePullRequests.map((pullRequest) => {
-      return markAutoMergePullRequestLimit(async () => {
-        markAutoMergePullRequest(pullRequest, organization, repository);
-      });
-    })
+    approvablePullRequests.map(
+      (pullRequest) => markAutoMergePullRequestLimit(
+        async () => markAutoMergePullRequest(pullRequest, organization, repository)
+      )
+    )
   );
 }
 async function mergeDependabotPullRequests() {
   const now = Date.now();
-  const organizationLimit = (0, import_promise_limit.default)(1);
-  await Promise.all(
-    Object.keys(organizationToRepo).map((organization) => {
-      return organizationLimit(async () => {
-        const repositories = organizationToRepo[organization];
-        const repositoryLimit = (0, import_promise_limit.default)(1);
-        await Promise.all(
-          repositories.map(
-            (repository) => repositoryLimit(() => mergePullRequestsInRepository(organization, repository, now))
-          )
-        );
-      });
-    })
-  );
+  const organization = github2.context.repo.owner;
+  const repository = github2.context.repo.repo;
+  return await mergePullRequestsInRepository(organization, repository, now);
 }
 mergeDependabotPullRequests().then().catch((err) => {
   throw err;
