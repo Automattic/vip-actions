@@ -10232,6 +10232,7 @@ var import_semver = __toESM(require_semver2());
 var github2 = __toESM(require_github());
 var PERIOD_WEEK = 6048e5;
 function isVersionBumpSafeToMerge(description) {
+  let hasMatch = false;
   const lines = description.split("\n");
   for (const line of lines) {
     let match = line.match(/^Updates `[@a-zA-Z\-/0-9]+` from ([0-9.]+) to ([0-9.]+)$/) || [];
@@ -10245,11 +10246,12 @@ function isVersionBumpSafeToMerge(description) {
     }
     const oldVersion = match[1];
     const newVersion = match[2];
+    hasMatch = true;
     if (!(0, import_semver.satisfies)(newVersion, `^${oldVersion}`)) {
       return false;
     }
   }
-  return true;
+  return hasMatch;
 }
 async function checkPullRequestApprovable(pullRequest, organization, repository, now = Date.now()) {
   var _a;
