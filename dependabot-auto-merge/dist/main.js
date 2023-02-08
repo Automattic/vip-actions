@@ -10253,7 +10253,7 @@ function isVersionBumpSafeToMerge(description) {
   }
   return hasMatch;
 }
-async function checkPullRequestApprovable(pullRequest, organization, repository, now = Date.now()) {
+function checkPullRequestApprovable(pullRequest, organization, repository, now = Date.now()) {
   var _a;
   try {
     const createdAt = new Date(pullRequest.created_at).getTime();
