@@ -80,6 +80,10 @@ function checkPullRequestApprovable(
 			return null;
 		}
 
+		if ( ! isPullRequestMergeable( pullRequest ) ) {
+			return null;
+		}
+
 		if ( ! isVersionBumpSafeToMerge( pullRequest.body || '' ) ) {
 			return null;
 		}
