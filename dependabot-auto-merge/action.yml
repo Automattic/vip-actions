@@ -8,5 +8,5 @@ inputs:
     required: true
 
 runs:
-  using: 'node16'
+  using: 'node16' # GitHub only supports values listed here: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsusing-for-javascript-actions
   main: 'dist/main.js'
