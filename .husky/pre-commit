@@ -2,3 +2,6 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npx lint-staged
+cd dependabot-auto-merge || exit 1
+npm run check-types
+cd ..
