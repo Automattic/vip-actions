@@ -4,15 +4,36 @@ import * as path from 'path';
 /**
  * Example: https://github.com/Automattic/vip-go-media-management-service/pull/842
  */
-export const getDescriptionTypeA = () => {
-	return fs.readFileSync( path.join( __dirname, './descriptionTypeA.txt' ) );
+export const getMergeableDescriptionTypeA = () => {
+	return fs.readFileSync( path.join( __dirname, './mergeableDescriptionTypeA.txt' ) ).toString();
 };
 
 /**
  * Example: https://github.com/Automattic/vip-go-media-management-service/pull/852
  */
-export const getDescriptionTypeB = () => {
-	return fs.readFileSync( path.join( __dirname, './descriptionTypeB.txt' ) );
+export const getMergeableDescriptionTypeB = () => {
+	return fs.readFileSync( path.join( __dirname, './mergeableDescriptionTypeB.txt' ) ).toString();
 };
 
-export const descriptions = [ getDescriptionTypeA(), getDescriptionTypeB() ];
+/**
+ * Example: https://github.com/Automattic/vip-go-media-management-service/pull/842
+ */
+export const getUnmergeableDescriptionTypeA = () => {
+	return fs.readFileSync( path.join( __dirname, './unmergeableDescriptionTypeA.txt' ) ).toString();
+};
+
+/**
+ * Example: https://github.com/Automattic/vip-go-media-management-service/pull/852
+ */
+export const getUnmergeableDescriptionTypeB = () => {
+	return fs.readFileSync( path.join( __dirname, './unmergeableDescriptionTypeB.txt' ) ).toString();
+};
+
+export const mergeableDescriptions = [
+	getMergeableDescriptionTypeA(),
+	getMergeableDescriptionTypeB(),
+];
+export const unmergeableDescriptions = [
+	getUnmergeableDescriptionTypeA(),
+	getUnmergeableDescriptionTypeB(),
+];
