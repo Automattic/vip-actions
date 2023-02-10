@@ -6,23 +6,27 @@ import {
 } from '../src/types/Github';
 import type { PartialDeep } from 'type-fest';
 import { faker } from '@faker-js/faker';
-import { getPullRequests, isPullRequestCheckSuccessful } from '../src/github';
-import * as github from '@actions/github';
-import * as core from '@actions/core';
+import * as actionsGithub from '@actions/github';
+import * as actionsCore from '@actions/core';
+import { getOctokit, getPullRequests, isPullRequestCheckSuccessful } from '../src/github';
 
-jest.mock( '@actions/github' );
-jest.mock( '@actions/core' );
-
-const getMockPullRequest = (): PartialDeep< PullRequestFromGet > => {
+const mockGetPullRequest = (): PartialDeep< PullRequestFromGet > => {
 	return {
-		number: Number( faker.unique( faker.random.numeric ) ),
+		head: {
+			sha: faker.datatype.hexadecimal( {
+				length: 40,
+				prefix: '',
+				case: 'lower',
+			} ),
+		},
+		number: Number( faker.helpers.unique( faker.random.numeric ) ),
 		user: {
 			login: 'dependabot[bot]',
 		},
 	};
 };
 
-const getOctokitReturnMock: PartialDeep< Octokit > = {
+const mockGetOctokitReturn: PartialDeep< Octokit > = {
 	rest: {
 		repos: {
 			getBranchProtection: jest.fn() as any,
@@ -37,19 +41,23 @@ const getOctokitReturnMock: PartialDeep< Octokit > = {
 							check_runs: [
 								{
 									name: 'Linting',
-									status: 'completed',
+									conclusion: 'success',
+								},
+								{
+									name: 'Type checking',
+									conclusion: 'success',
 								},
 								{
 									name: 'Try and bake cookies',
-									status: 'queued',
+									conclusion: 'failure',
 								},
 								{
 									name: 'Run tests',
-									status: 'completed',
+									conclusion: 'skipped',
 								},
 								{
 									name: 'Send notifications',
-									status: 'in_progress',
+									conclusion: null,
 								},
 							],
 						},
@@ -58,69 +66,68 @@ const getOctokitReturnMock: PartialDeep< Octokit > = {
 			) as any,
 		},
 		pulls: {
-			createReview: jest.fn() as any,
+			createReview: jest.fn( () => ( { data: {} } ) ) as any,
 			merge: jest.fn() as any,
 			get: jest.fn( async (): Promise< { data: PartialDeep< PullRequestFromGet > } > => {
 				return {
-					data: getMockPullRequest() as any,
+					data: mockGetPullRequest() as any,
 				};
 			} ) as any,
+			list: jest.fn(
+				async (): Promise< {
+					headers: { link?: string };
+					data: PartialDeep< PullRequestFromList >[];
+				} > => {
+					return {
+						headers: {},
+						data: [
+							{
+								user: {
+									login: 'dependabot[bot]',
+								},
+							},
+							{
+								user: {
+									login: 'dependabot[bot]',
+								},
+							},
+							{
+								user: {
+									login: 'not-dependabot[bot]',
+								},
+							},
+						],
+					};
+				}
+			) as any,
 		},
 	},
 };
 
-jest.mock( '../src/github', () => {
-	const actual = jest.requireActual( '../src/github' );
-
+jest.mock( '@actions/github', () => {
 	return {
-		...actual,
 		__esModule: true,
-		getAllGitHubItems: jest.fn( async (): Promise< PartialDeep< PullRequestFromList >[] > => {
-			return [
-				{
-					user: {
-						login: 'dependabot[bot]',
-					},
-				},
-				{
-					user: {
-						login: 'dependabot[bot]',
-					},
-				},
-				{
-					user: {
-						login: 'not-dependabot[bot]',
-					},
-				},
-			];
-		} ),
-		getOctoKit: jest.fn( async (): Promise< PartialDeep< Octokit > > => {
-			return getOctokitReturnMock as any;
-		} ),
-		createReview: jest.fn(),
+		getOctokit: jest.fn( () => mockGetOctokitReturn ),
 	};
 } );
+
+jest.mock( '@actions/core' );
 
 describe( 'github', () => {
 	describe( 'getOctoKit', () => {
 		it( 'should call GitHub APIs to get the token', () => {
 			const token = '123';
-			jest.mocked( core.getInput ).mockImplementation( () => token );
-
-			const { getOctokit } = jest.requireActual(
-				'../src/github'
-			) as typeof import( '../src/github' );
+			jest.mocked( actionsCore.getInput ).mockImplementationOnce( () => token );
 			getOctokit( false );
 
-			expect( core.getInput ).toBeCalledWith( 'GITHUB_TOKEN' );
-			expect( github.getOctokit ).toBeCalledWith( token );
+			expect( actionsCore.getInput ).toBeCalledWith( 'GITHUB_TOKEN' );
+			expect( actionsGithub.getOctokit ).toBeCalledWith( token );
 		} );
 	} );
 
 	describe( 'getPullRequests', () => {
 		it( 'should get all pull requests by dependabot', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
-
 			expect( pullRequests ).toHaveLength( 2 );
 			pullRequests.forEach( pullRequest => {
 				expect( pullRequest.user?.login ).toBe( 'dependabot[bot]' );
@@ -130,7 +137,7 @@ describe( 'github', () => {
 
 	describe( 'isPullRequestCheckSuccessful', () => {
 		it( 'should return true if the required checks succeeded', async () => {
-			const requiredChecks = [ 'Linting', 'Run tests' ];
+			const requiredChecks = [ 'Linting', 'Type checking', 'Run tests' ];
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 
 			await expect(
@@ -177,9 +184,9 @@ describe( 'github', () => {
 			const { approvePullRequest } = jest.requireActual(
 				'../src/github'
 			) as typeof import( '../src/github' );
-			const pullRequest = getMockPullRequest();
+			const pullRequest = mockGetPullRequest();
 			await approvePullRequest( pullRequest as any, 'doesntmatter', 'doesntmatter' );
-			expect( getOctokitReturnMock.rest?.pulls?.createReview ).toBeCalledWith( {
+			expect( mockGetOctokitReturn.rest?.pulls?.createReview ).toBeCalledWith( {
 				pull_number: pullRequest.number,
 				repo: 'doesntmatter',
 				owner: 'doesntmatter',
