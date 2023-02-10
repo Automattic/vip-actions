@@ -3,12 +3,20 @@ import {
 	Octokit,
 	PullRequestFromGet,
 	PullRequestFromList,
+	PullRequestReview,
 } from '../src/types/Github';
 import type { PartialDeep } from 'type-fest';
 import { faker } from '@faker-js/faker';
 import * as actionsGithub from '@actions/github';
 import * as actionsCore from '@actions/core';
-import { getOctokit, getPullRequests, isPullRequestCheckSuccessful } from '../src/github';
+import {
+	callMarkAutoMergePullRequestEndpoint,
+	getOctokit,
+	getPullRequests,
+	isPullRequestApproved,
+	isPullRequestCheckSuccessful,
+	mergePullRequest,
+} from '../src/github';
 
 const mockGetPullRequest = (): PartialDeep< PullRequestFromGet > => {
 	return {
@@ -19,7 +27,8 @@ const mockGetPullRequest = (): PartialDeep< PullRequestFromGet > => {
 				case: 'lower',
 			} ),
 		},
-		number: Number( faker.helpers.unique( faker.random.numeric ) ),
+		node_id: faker.helpers.unique( faker.random.numeric, [ 10 ] ),
+		number: Number( faker.helpers.unique( faker.random.numeric, [ 10 ] ) ),
 		user: {
 			login: 'dependabot[bot]',
 		},
@@ -27,6 +36,7 @@ const mockGetPullRequest = (): PartialDeep< PullRequestFromGet > => {
 };
 
 const mockGetOctokitReturn: PartialDeep< Octokit > = {
+	graphql: jest.fn() as any,
 	rest: {
 		repos: {
 			getBranchProtection: jest.fn() as any,
@@ -95,6 +105,27 @@ const mockGetOctokitReturn: PartialDeep< Octokit > = {
 								user: {
 									login: 'not-dependabot[bot]',
 								},
+							},
+						],
+					};
+				}
+			) as any,
+			listReviews: jest.fn(
+				async (): Promise< {
+					headers: { link?: string };
+					data: PartialDeep< PullRequestReview >[];
+				} > => {
+					return {
+						headers: {},
+						data: [
+							{
+								state: 'APPROVED',
+							},
+							{
+								state: 'CHANGES_REQUESTED',
+							},
+							{
+								state: 'COMMENTED',
 							},
 						],
 					};
@@ -195,22 +226,71 @@ describe( 'github', () => {
 		} );
 	} );
 
-	// describe('isPullRequestApproved', () => {
-	// 	it('should return true if at least one review has approved it', async () => {
-	//
-	// 	})
-	// 	it('should return false if no one has approved it', async () => {
-	//
-	// 	})
-	// })
-	//
-	// describe('mergePullRequest', () => {
-	//
-	// })
-	//
-	// describe('callMarkAutoMergePullRequestEndpoint', () => {
-	//
-	// })
+	describe( 'isPullRequestApproved', () => {
+		it( 'should return true if at least one review has approved it', async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			await expect(
+				isPullRequestApproved( pullRequest, 'doesntmatter', 'doesntmatter' )
+			).resolves.toBe( true );
+		} );
+
+		it( 'should return false if no one has approved it', async () => {
+			// The weird || jest.fn() is just to satisfy types. We could use ! but eslint is unhappy.
+			jest
+				.mocked( mockGetOctokitReturn?.rest?.pulls?.listReviews || jest.fn() )
+				.mockImplementationOnce( ( async (): Promise< {
+					headers: { link?: string };
+					data: PartialDeep< PullRequestReview >[];
+				} > => {
+					return {
+						headers: {},
+						data: [
+							{
+								state: 'COMMENTED',
+							},
+							{
+								state: 'CHANGES_REQUESTED',
+							},
+							{
+								state: 'COMMENTED',
+							},
+						],
+					};
+				} ) as any );
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			await expect(
+				isPullRequestApproved( pullRequest, 'doesntmatter', 'doesntmatter' )
+			).resolves.toBe( false );
+		} );
+	} );
+
+	describe( 'mergePullRequest', () => {
+		it( "should call GitHub's API to merge pull requests", async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			await mergePullRequest( pullRequest, 'doesntmatter', 'doesntmatter' );
+			expect( mockGetOctokitReturn?.rest?.pulls?.merge ).toBeCalledWith( {
+				pull_number: pullRequest.number,
+				repo: 'doesntmatter',
+				owner: 'doesntmatter',
+			} );
+		} );
+	} );
+
+	describe( 'callMarkAutoMergePullRequestEndpoint', () => {
+		it( "should call GitHub's API to mark a PR as auto-mergeable", async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			await callMarkAutoMergePullRequestEndpoint( pullRequest );
+			const graphqlMock = jest.mocked( mockGetOctokitReturn?.graphql );
+			expect( graphqlMock?.mock.calls[ 0 ][ 0 ] ).toBeDefined();
+			expect( graphqlMock?.mock.calls[ 0 ][ 1 ] ).toStrictEqual( {
+				pullRequestId: pullRequest.node_id,
+			} );
+		} );
+	} );
 } );
 
 export {};
