@@ -22,6 +22,7 @@
   "include": [
     "./src",
     "./__tests__",
+    "./__fixtures__",
     "./global.d.ts"
   ]
 }
