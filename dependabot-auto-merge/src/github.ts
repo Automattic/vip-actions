@@ -20,6 +20,10 @@ export const getOctokit = ( isCached = true ): Octokit => {
 
 	octokitCache = octokitInstance;
 
+	if ( ! octokitCache ) {
+		throw new Error( 'Failed to initialize Octokit' );
+	}
+
 	return octokitCache;
 };
 
