@@ -4,13 +4,12 @@ import {
 	callMarkAutoMergePullRequestEndpoint,
 	getPullRequests,
 	isPullRequestApproved,
+	isPullRequestCheckSuccessful,
 	mergePullRequest,
 } from './github';
 import { satisfies } from 'semver';
 import promiseLimit from 'promise-limit';
 import * as github from '@actions/github';
-
-const PERIOD_WEEK = 604800000;
 
 /**
  * Checks if the version bump is safe to merge.
@@ -61,39 +60,52 @@ export function isVersionBumpSafeToMerge( description: string ) {
 	return hasMatch;
 }
 
-export function checkPullRequestApprovable(
-	pullRequest: PullRequestFromGet,
-	organization: string,
-	repository: string,
-	now = Date.now()
-): PullRequestFromGet | null {
-	try {
-		const createdAt = new Date( pullRequest.created_at ).getTime();
-		if ( now - createdAt < PERIOD_WEEK ) {
-			// noop, we'll let the scheduler handle it for now until we decided something better
-			// return null;
-		}
+export async function isPullRequestApprovable( {
+	pullRequest,
+	organization,
+	repository,
+	now = Date.now(),
+	minimumAgeInMs = 0, // use PERIOD_WEEK = 604800000 for a week
+	checks,
+}: {
+	pullRequest: PullRequestFromGet;
+	organization: string;
+	repository: string;
+	now?: number;
+	checks?: string[];
+	minimumAgeInMs?: number;
+} ): Promise< boolean > {
+	const createdAt = new Date( pullRequest.created_at ).getTime();
 
-		if ( pullRequest.user?.login !== 'dependabot[bot]' ) {
-			return null;
-		}
-
-		if ( ! isPullRequestMergeable( pullRequest ) ) {
-			return null;
-		}
-
-		if ( ! isVersionBumpSafeToMerge( pullRequest.body || '' ) ) {
-			return null;
-		}
-	} catch ( e: unknown ) {
-		const error = e as Error;
-		console.error(
-			`Pull request approval check failed with the following error: ${ error.message }`
-		);
-		return null;
+	if ( now - createdAt < minimumAgeInMs ) {
+		return false;
 	}
 
-	return pullRequest;
+	if ( pullRequest.user?.login !== 'dependabot[bot]' ) {
+		return false;
+	}
+
+	if ( ! isPullRequestMergeable( pullRequest ) ) {
+		return false;
+	}
+
+	if ( ! isVersionBumpSafeToMerge( pullRequest.body || '' ) ) {
+		return false;
+	}
+
+	if ( checks ) {
+		const isCheckSuccessful = await isPullRequestCheckSuccessful(
+			pullRequest,
+			organization,
+			repository,
+			checks
+		);
+		if ( ! isCheckSuccessful ) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 export function isPullRequestMergeable( pullRequest: PullRequestFromGet ) {
@@ -136,17 +148,26 @@ export async function mergePullRequestsInRepository(
 	repository: string,
 	now = Date.now()
 ) {
+	const concurrencyLimit = promiseLimit< any >( 1 );
 	const pullRequests = await getPullRequests( organization, repository );
 
-	const approvablePullRequests = pullRequests.filter( pullRequest =>
-		checkPullRequestApprovable( pullRequest, organization, repository, now )
-	) as PullRequestFromGet[];
+	const approvablePullRequestsWithNull = await Promise.all(
+		pullRequests.map( async pullRequest => {
+			const isApprovable: boolean = await concurrencyLimit( () =>
+				isPullRequestApprovable( { pullRequest, organization, repository, now } )
+			);
 
-	const markAutoMergePullRequestLimit = promiseLimit< void >( 1 );
+			return isApprovable ? pullRequest : null;
+		} )
+	);
+
+	const approvablePullRequests = approvablePullRequestsWithNull.filter(
+		pullRequest => pullRequest
+	) as PullRequestFromGet[];
 
 	await Promise.all(
 		approvablePullRequests.map( pullRequest =>
-			markAutoMergePullRequestLimit( async () =>
+			concurrencyLimit( async () =>
 				markAutoMergePullRequest( pullRequest, organization, repository )
 			)
 		)
