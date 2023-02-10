@@ -1,11 +1,16 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
-import { Octokit, PullRequestFromGet, PullRequestReview } from './types/Github';
+import {
+	Octokit,
+	PullRequestFromGet,
+	PullRequestFromList,
+	PullRequestReview,
+} from './types/Github';
 
 let octokitCache: Octokit | null = null;
 
-const getOctokit = (): Octokit => {
-	if ( octokitCache ) {
+export const getOctokit = ( isCached = true ): Octokit => {
+	if ( octokitCache && isCached ) {
 		return octokitCache;
 	}
 
@@ -54,10 +59,13 @@ export async function getPullRequests(
 	repository: string
 ): Promise< PullRequestFromGet[] > {
 	const octokit = getOctokit();
-	const pullRequestsFromListAPI = await getAllGitHubItems( octokit.rest.pulls.list, {
-		owner: organization,
-		repo: repository,
-	} );
+	const pullRequestsFromListAPI: PullRequestFromList[] = await getAllGitHubItems(
+		octokit.rest.pulls.list,
+		{
+			owner: organization,
+			repo: repository,
+		}
+	);
 
 	return await Promise.all(
 		pullRequestsFromListAPI
@@ -75,40 +83,22 @@ export async function getPullRequests(
 }
 
 /**
- * This function is unused as we're now doing auto-merge - so we let GitHub identify whether the
- * check is successful or not (which may or may not be a bad idea)
- * We may re-require this in the future if we wanted to add extra conditionals.
+ * This function checks if the latest run has all the checks in the required checks be successful.
  *
  * @param pullRequest
  * @param organization
  * @param repository
+ * @param requiredCheckRunNames
  */
 export async function isPullRequestCheckSuccessful(
 	pullRequest: PullRequestFromGet,
 	organization: string,
-	repository: string
+	repository: string,
+	requiredCheckRunNames: string[]
 ) {
 	const ref = pullRequest.head.sha;
 
-	const baseBranch = pullRequest.base.ref;
-
-	// TODO: Get list of protections from the action's `with` field instead as `getBranchProtection` requires a personal token.
-	const branchProtectionResponse = await getOctokit().rest.repos.getBranchProtection( {
-		owner: organization,
-		repo: repository,
-		branch: baseBranch,
-	} );
-
-	const branchProtectionDetails = branchProtectionResponse.data;
-
-	const requiredContexts = branchProtectionDetails.required_status_checks?.contexts || [];
-
-	if ( requiredContexts.length === 0 ) {
-		// branch has no protection, so check is assumed not successful
-		return false;
-	}
-
-	const requiredContextsDict = requiredContexts.reduce< Record< string, true > >(
+	const requiredCheckRunNamesDict = requiredCheckRunNames.reduce< Record< string, true > >(
 		( previousValue, currentValue ) => {
 			previousValue[ currentValue ] = true;
 
@@ -122,13 +112,12 @@ export async function isPullRequestCheckSuccessful(
 		repo: repository,
 		ref,
 	} );
+
 	const checkRunsDetail = response.data;
 
-	// checkRun.name has the same value as required status check's context.
-	// and this isn't documented by GitHub
 	const successfulAndRequiredCheckRuns = checkRunsDetail.check_runs.filter(
 		checkRun =>
-			requiredContextsDict[ checkRun.name ] &&
+			requiredCheckRunNamesDict[ checkRun.name ] &&
 			[ 'success', 'skipped' ].includes( checkRun.conclusion || '' )
 	);
 
@@ -139,7 +128,7 @@ export async function isPullRequestCheckSuccessful(
 
 	// the number of successful checks should be the same as the number of required contexts.
 	// if it's not we'd have to check our code.
-	return requiredContexts.length === successfulAndRequiredCheckRuns.length;
+	return requiredCheckRunNames.length === successfulAndRequiredCheckRuns.length;
 }
 
 export async function approvePullRequest(
