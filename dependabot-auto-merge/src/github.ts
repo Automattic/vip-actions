@@ -5,7 +5,7 @@ import {
 	PullRequestFromGet,
 	PullRequestFromList,
 	PullRequestReview,
-} from './types/Github';
+} from './types/GitHub';
 
 let octokitCache: Octokit | null = null;
 

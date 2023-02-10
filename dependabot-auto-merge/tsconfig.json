@@ -17,7 +17,8 @@
     // Import non-ES modules as default imports.
     "esModuleInterop": true,
     "baseUrl": ".",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "./src",

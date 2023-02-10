@@ -4,7 +4,7 @@ import {
 	PullRequestFromGet,
 	PullRequestFromList,
 	PullRequestReview,
-} from '../src/types/Github';
+} from '../src/types/GitHub';
 import type { PartialDeep } from 'type-fest';
 import { faker } from '@faker-js/faker';
 import * as actionsGithub from '@actions/github';

@@ -1,4 +1,4 @@
-import { PullRequestFromGet } from './types/Github';
+import { PullRequestFromGet } from './types/GitHub';
 import {
 	approvePullRequest,
 	callMarkAutoMergePullRequestEndpoint,
