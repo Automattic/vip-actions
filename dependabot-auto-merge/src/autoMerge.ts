@@ -77,7 +77,7 @@ export async function isPullRequestApprovable( {
 } ): Promise< boolean > {
 	const createdAt = new Date( pullRequest.created_at ).getTime();
 
-	if ( now - createdAt < minimumAgeInMs ) {
+	if ( now - createdAt <= minimumAgeInMs ) {
 		return false;
 	}
 
