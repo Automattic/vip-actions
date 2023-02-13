@@ -136,6 +136,10 @@ export async function markAutoMergePullRequest(
 			console.log( `Pull request ${ pullRequest.title } has been marked as auto-mergeable` );
 		} catch ( e ) {
 			const error = e as Error;
+			// GitHub shows this error if the pull request can already be merged without bypassing any rules,
+			// and then we try to mark is as auto-mergeable:
+			// > Request failed due to following response errors:
+			// > - ["Pull request Pull request is in clean status"]
 			if (
 				`${ error.message }`.match( /"Pull request Pull request is in clean status"/ ) &&
 				isPullRequestMergeable( pullRequest )
