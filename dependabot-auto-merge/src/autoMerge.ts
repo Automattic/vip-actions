@@ -114,6 +114,14 @@ export function isPullRequestMergeable( pullRequest: PullRequestFromGet ) {
 	return pullRequest.mergeable_state === 'clean' && pullRequest.mergeable === true;
 }
 
+/**
+ * Marks pull request as auto-mergeable, or merge immediately if GitHub deems it as mergeable.
+ * NOTE: This function does not do any validation
+ *
+ * @param pullRequest
+ * @param organization
+ * @param repository
+ */
 export async function markAutoMergePullRequest(
 	pullRequest: PullRequestFromGet,
 	organization: string,
@@ -125,18 +133,21 @@ export async function markAutoMergePullRequest(
 		}
 		try {
 			await callMarkAutoMergePullRequestEndpoint( pullRequest );
+			console.log( `Pull request ${ pullRequest.title } has been marked as auto-mergeable` );
 		} catch ( e ) {
 			const error = e as Error;
 			if (
 				`${ error.message }`.match( /"Pull request Pull request is in clean status"/ ) &&
 				isPullRequestMergeable( pullRequest )
 			) {
+				console.log(
+					`Pull request ${ pullRequest.title } is already mergeable and hence cannot be marked as auto-mergeable. Merging immediately!`
+				);
 				await mergePullRequest( pullRequest, organization, repository );
 			} else {
 				throw e;
 			}
 		}
-		console.log( `Pull request ${ pullRequest.title } has been marked as auto-mergeable` );
 	} catch ( e ) {
 		const error = e as Error;
 		console.error(
