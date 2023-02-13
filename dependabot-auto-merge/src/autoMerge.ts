@@ -77,7 +77,9 @@ export async function isPullRequestApprovable( {
 } ): Promise< boolean > {
 	const createdAt = new Date( pullRequest.created_at ).getTime();
 
-	if ( now - createdAt <= minimumAgeInMs ) {
+	// The time difference between the current time and the PR creation date is the age of the PR
+	// hence, if the age of the PR is less than the minimum age, it's not approvable.
+	if ( now - createdAt < minimumAgeInMs ) {
 		return false;
 	}
 
