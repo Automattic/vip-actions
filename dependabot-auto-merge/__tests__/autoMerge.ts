@@ -4,12 +4,16 @@ import {
 	mergeableDescriptions,
 	unmergeableDescriptions,
 } from '../__fixtures__/autoMerge/autoMerge';
-import {
+
+import * as autoMerge from '../src/autoMerge';
+
+const {
 	isPullRequestApprovable,
 	isPullRequestMergeable,
 	isVersionBumpSafeToMerge,
 	markAutoMergePullRequest,
-} from '../src/autoMerge';
+} = autoMerge;
+
 import type { PartialDeep } from 'type-fest';
 import {
 	CheckRunDetails,
@@ -151,6 +155,8 @@ jest.mock( '@actions/github', () => {
 
 jest.mock( '@actions/core' );
 
+const now = new Date( '2023-01-08T00:00:00Z' ).getTime();
+
 describe( 'autoMerge', () => {
 	describe( 'isVersionBumpSafeToMerge', () => {
 		it.each( mergeableDescriptions )(
@@ -189,7 +195,7 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
-					now: new Date( '2023-01-08T00:00:00Z' ).getTime(),
+					now,
 					minimumAgeInMs: 604800000, // a week
 					checks: [ 'Linting', 'Type checking' ],
 				} )
@@ -200,7 +206,7 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
-					now: new Date( '2023-01-08T00:00:00Z' ).getTime(),
+					now,
 					minimumAgeInMs: 604800000, // a week
 				} )
 			).resolves.toBe( true );
@@ -210,6 +216,7 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
+					now,
 				} )
 			).resolves.toBe( true );
 		} );
@@ -239,6 +246,7 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
+					now,
 				} )
 			).resolves.toBe( false );
 		} );
@@ -252,6 +260,7 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
+					now,
 				} )
 			).resolves.toBe( false );
 		} );
@@ -265,6 +274,7 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
+					now,
 					checks: requiredChecks,
 				} )
 			).resolves.toBe( false );
@@ -312,7 +322,14 @@ describe( 'autoMerge', () => {
 	} );
 
 	describe( 'mergePullRequestsInRepository', () => {
-		// noop
+		it( 'should start the logic for marking pull requests as auto-mergeable on all dependabot PRs', async () => {
+			jest.spyOn( autoMerge, 'isPullRequestApprovable' );
+			jest.spyOn( autoMerge, 'markAutoMergePullRequest' );
+			await autoMerge.mergePullRequestsInRepository( 'doesntmatter', 'doesntmatter', now );
+
+			expect( autoMerge.isPullRequestApprovable ).toBeCalledTimes( 2 );
+			expect( autoMerge.markAutoMergePullRequest ).toBeCalledTimes( 2 );
+		} );
 	} );
 
 	describe( 'mergeDependabotPullRequests', () => {
