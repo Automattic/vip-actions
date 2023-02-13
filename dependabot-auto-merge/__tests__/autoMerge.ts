@@ -8,6 +8,7 @@ import {
 	isPullRequestApprovable,
 	isPullRequestMergeable,
 	isVersionBumpSafeToMerge,
+	markAutoMergePullRequest,
 } from '../src/autoMerge';
 import type { PartialDeep } from 'type-fest';
 import {
@@ -286,7 +287,28 @@ describe( 'autoMerge', () => {
 	} );
 
 	describe( 'markAutoMergePullRequest', () => {
-		// noop
+		it( 'should call GitHub API to mark a pull request as auto-mergeable', async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			await markAutoMergePullRequest( pullRequest, 'doesntmatter', 'doesntmatter' );
+			expect( mockGetOctokitReturn.graphql ).toBeCalled();
+			expect( mockGetOctokitReturn?.rest?.pulls?.merge ).not.toBeCalled();
+		} );
+
+		it( "should merge anyway if it's mergeable but the GitHub API's mark automerge failed", async () => {
+			const mockGraphQL = jest.mocked( mockGetOctokitReturn.graphql || jest.fn() );
+			mockGraphQL.mockImplementation( async () => {
+				throw new Error( `Request failed due to following response errors:
+ - ["Pull request Pull request is in clean status"]` );
+				const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+				const pullRequest = pullRequests[ 0 ];
+				await markAutoMergePullRequest( pullRequest, 'doesntmatter', 'doesntmatter' );
+				await expect( mockGraphQL.mock.results[ 0 ] ).rejects.toThrow(
+					/"Pull request Pull request is in clean status"/
+				);
+				expect( mockGetOctokitReturn?.rest?.pulls?.merge ).toBeCalled();
+			} );
+		} );
 	} );
 
 	describe( 'mergePullRequestsInRepository', () => {
