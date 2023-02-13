@@ -1,4 +1,5 @@
 import {
+	getMergeableDescriptionTypeA,
 	getUnmergeableDescriptionTypeA,
 	mergeableDescriptions,
 	unmergeableDescriptions,
@@ -29,6 +30,10 @@ const mockGetPullRequest = (): PartialDeep< PullRequestFromGet > => {
 		user: {
 			login: 'dependabot[bot]',
 		},
+		created_at: '2023-01-01T00:00:00Z',
+		mergeable: true,
+		mergeable_state: 'clean',
+		body: getMergeableDescriptionTypeA(),
 	};
 };
 
@@ -92,19 +97,16 @@ const mockGetOctokitReturn: PartialDeep< Octokit > = {
 								user: {
 									login: 'dependabot[bot]',
 								},
-								created_at: '2023-01-01T00:00:00Z',
 							},
 							{
 								user: {
 									login: 'dependabot[bot]',
 								},
-								created_at: '2023-01-01T00:00:00Z',
 							},
 							{
 								user: {
 									login: 'not-dependabot[bot]',
 								},
-								created_at: '2023-01-01T00:00:00Z',
 							},
 						],
 					};
@@ -173,8 +175,8 @@ describe( 'autoMerge', () => {
 		);
 	} );
 
-	describe( 'isPullRequestApprovable', async () => {
-		it( 'should approve if all the conditions are right, with the current default settings', async () => {
+	describe( 'isPullRequestApprovable', () => {
+		it( 'should return true if all the conditions are right, with the current default settings', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 			const pullRequest = pullRequests[ 0 ];
 			await expect(
@@ -186,7 +188,7 @@ describe( 'autoMerge', () => {
 					minimumAgeInMs: 604800000, // a week
 					checks: [ 'Linting', 'Type checking' ],
 				} )
-			).toBe( true );
+			).resolves.toBe( true );
 
 			await expect(
 				isPullRequestApprovable( {
@@ -196,7 +198,7 @@ describe( 'autoMerge', () => {
 					now: new Date( '2023-01-08T00:00:00Z' ).getTime(),
 					minimumAgeInMs: 604800000, // a week
 				} )
-			).toBe( true );
+			).resolves.toBe( true );
 
 			await expect(
 				isPullRequestApprovable( {
@@ -204,10 +206,10 @@ describe( 'autoMerge', () => {
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
 				} )
-			).toBe( true );
+			).resolves.toBe( true );
 		} );
 
-		it( 'should not approve if the PR is too new', async () => {
+		it( 'should return false approve if the PR is too new', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 			const pullRequest = pullRequests[ 0 ];
 
@@ -219,10 +221,10 @@ describe( 'autoMerge', () => {
 					now: new Date( '2023-01-07T23:59:59Z' ).getTime(),
 					minimumAgeInMs: 604800000, // a week
 				} )
-			).resolves.toBe( true );
+			).resolves.toBe( false );
 		} );
 
-		it( 'should not approve if the PR is not considered mergeable', async () => {
+		it( 'should return false if the PR is not considered mergeable', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 			const pullRequest = pullRequests[ 0 ];
 			pullRequest.mergeable_state = 'yadaaa';
@@ -233,10 +235,10 @@ describe( 'autoMerge', () => {
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
 				} )
-			);
+			).resolves.toBe( false );
 		} );
 
-		it( "should not approve if the PR's version bump is not safe to merge", async () => {
+		it( "should return false if the PR's version bump is not safe to merge", async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 			const pullRequest = pullRequests[ 0 ];
 			pullRequest.body = getUnmergeableDescriptionTypeA();
@@ -246,12 +248,12 @@ describe( 'autoMerge', () => {
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
 				} )
-			);
+			).resolves.toBe( false );
 		} );
 
 		it( 'should not approve if the required checks are not successful', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
-			const requiredChecks = [ 'Linting', 'Run tests' ];
+			const requiredChecks = [ 'Linting', 'Try and bake cookies' ];
 			const pullRequest = pullRequests[ 0 ];
 			await expect(
 				isPullRequestApprovable( {
@@ -260,7 +262,7 @@ describe( 'autoMerge', () => {
 					organization: 'doesntmatter',
 					checks: requiredChecks,
 				} )
-			);
+			).resolves.toBe( false );
 		} );
 	} );
 
