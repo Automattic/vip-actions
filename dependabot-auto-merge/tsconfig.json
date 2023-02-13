@@ -16,6 +16,7 @@
     "isolatedModules": true,
     // Import non-ES modules as default imports.
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
