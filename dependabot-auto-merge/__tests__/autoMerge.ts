@@ -150,6 +150,12 @@ jest.mock( '@actions/github', () => {
 	return {
 		__esModule: true,
 		getOctokit: jest.fn( () => mockGetOctokitReturn ),
+		context: {
+			repo: {
+				repo: 'doesntmatter',
+				owner: 'doesntmatter',
+			},
+		},
 	};
 } );
 
@@ -333,7 +339,15 @@ describe( 'autoMerge', () => {
 	} );
 
 	describe( 'mergeDependabotPullRequests', () => {
-		// noop
+		it( 'should call mergePullRequestsInRepository with the expected parameters', async () => {
+			const spyMergePullRequestsInRepository = jest.spyOn(
+				autoMerge,
+				'mergePullRequestsInRepository'
+			);
+			await autoMerge.mergeDependabotPullRequests();
+			expect( spyMergePullRequestsInRepository.mock.calls[ 0 ][ 0 ] ).toBe( 'doesntmatter' );
+			expect( spyMergePullRequestsInRepository.mock.calls[ 0 ][ 1 ] ).toBe( 'doesntmatter' );
+		} );
 	} );
 } );
 
