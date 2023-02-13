@@ -37,9 +37,9 @@ You can schedule the time using the `on: schedule: -cron:` field.
 
 name: Dependabot auto-merge
 on:
-  workflow_dispatch:
+  workflow_dispatch: # so that you can run it manually
   schedule:
-    - cron: '0 0 * * 3' # 00:00 AM UTC
+    - cron: '0 0 * * 3' # 00:00 AM UTC on Wednesday
 permissions:
   contents: write
   pull-requests: write
