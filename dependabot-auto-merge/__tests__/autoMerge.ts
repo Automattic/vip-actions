@@ -1,4 +1,5 @@
 import {
+	getUnmergeableDescriptionTypeA,
 	mergeableDescriptions,
 	unmergeableDescriptions,
 } from '../__fixtures__/autoMerge/autoMerge';
@@ -91,16 +92,19 @@ const mockGetOctokitReturn: PartialDeep< Octokit > = {
 								user: {
 									login: 'dependabot[bot]',
 								},
+								created_at: '2023-01-01T00:00:00Z',
 							},
 							{
 								user: {
 									login: 'dependabot[bot]',
 								},
+								created_at: '2023-01-01T00:00:00Z',
 							},
 							{
 								user: {
 									login: 'not-dependabot[bot]',
 								},
+								created_at: '2023-01-01T00:00:00Z',
 							},
 						],
 					};
@@ -178,25 +182,51 @@ describe( 'autoMerge', () => {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
+					now: new Date( '2023-01-08T00:00:00Z' ).getTime(),
+					minimumAgeInMs: 604800000, // a week
+					checks: [ 'Linting', 'Type checking' ],
 				} )
-			);
-		} );
+			).toBe( true );
 
-		it( 'should not approve if the PR is too new', async () => {
-			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
-			const pullRequest = pullRequests[ 0 ];
+			await expect(
+				isPullRequestApprovable( {
+					pullRequest,
+					repository: 'doesntmatter',
+					organization: 'doesntmatter',
+					now: new Date( '2023-01-08T00:00:00Z' ).getTime(),
+					minimumAgeInMs: 604800000, // a week
+				} )
+			).toBe( true );
+
 			await expect(
 				isPullRequestApprovable( {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
 				} )
-			);
+			).toBe( true );
+		} );
+
+		it( 'should not approve if the PR is too new', async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+
+			await expect(
+				isPullRequestApprovable( {
+					pullRequest,
+					repository: 'doesntmatter',
+					organization: 'doesntmatter',
+					now: new Date( '2023-01-07T23:59:59Z' ).getTime(),
+					minimumAgeInMs: 604800000, // a week
+				} )
+			).resolves.toBe( true );
 		} );
 
 		it( 'should not approve if the PR is not considered mergeable', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 			const pullRequest = pullRequests[ 0 ];
+			pullRequest.mergeable_state = 'yadaaa';
+			pullRequest.mergeable = false;
 			await expect(
 				isPullRequestApprovable( {
 					pullRequest,
@@ -209,6 +239,7 @@ describe( 'autoMerge', () => {
 		it( "should not approve if the PR's version bump is not safe to merge", async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
 			const pullRequest = pullRequests[ 0 ];
+			pullRequest.body = getUnmergeableDescriptionTypeA();
 			await expect(
 				isPullRequestApprovable( {
 					pullRequest,
@@ -220,12 +251,14 @@ describe( 'autoMerge', () => {
 
 		it( 'should not approve if the required checks are not successful', async () => {
 			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const requiredChecks = [ 'Linting', 'Run tests' ];
 			const pullRequest = pullRequests[ 0 ];
 			await expect(
 				isPullRequestApprovable( {
 					pullRequest,
 					repository: 'doesntmatter',
 					organization: 'doesntmatter',
+					checks: requiredChecks,
 				} )
 			);
 		} );
