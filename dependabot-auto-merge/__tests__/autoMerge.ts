@@ -4,7 +4,11 @@ import {
 	mergeableDescriptions,
 	unmergeableDescriptions,
 } from '../__fixtures__/autoMerge/autoMerge';
-import { isPullRequestApprovable, isVersionBumpSafeToMerge } from '../src/autoMerge';
+import {
+	isPullRequestApprovable,
+	isPullRequestMergeable,
+	isVersionBumpSafeToMerge,
+} from '../src/autoMerge';
 import type { PartialDeep } from 'type-fest';
 import {
 	CheckRunDetails,
@@ -267,7 +271,18 @@ describe( 'autoMerge', () => {
 	} );
 
 	describe( 'isPullRequestMergeable', () => {
-		// noop
+		it( "should return true if it's considered mergeable", async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			expect( isPullRequestMergeable( pullRequest ) ).toBe( true );
+		} );
+
+		it( "should return false if it's considered unmergeable", async () => {
+			const pullRequests = await getPullRequests( 'doesntmatter', 'doesntmatter' );
+			const pullRequest = pullRequests[ 0 ];
+			pullRequest.mergeable = false;
+			expect( isPullRequestMergeable( pullRequest ) ).toBe( false );
+		} );
 	} );
 
 	describe( 'markAutoMergePullRequest', () => {
