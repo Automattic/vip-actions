@@ -26,7 +26,7 @@ jobs:
     name: Dependaban
     runs-on: ubuntu-latest
     permissions:
-      contests: read
+      contents: read
     steps:
       - uses: Automattic/vip-actions/dependaban@trunk
 ```

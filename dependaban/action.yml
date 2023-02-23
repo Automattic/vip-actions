@@ -24,6 +24,6 @@ runs:
         cache: npm
 
     - name: Run can-i-ignore-scripts check
-      if: inputs.skip-scripts-check != "true"
+      if: ${{ inputs.skip-scripts-check != 'true' }}
       run: ${{ github.action_path }}/bin/can-i-ignore-scripts.sh
       shell: bash
