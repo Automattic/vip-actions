@@ -1,0 +1,29 @@
+---
+
+name: Dependaban
+description: "This action checks for dependencies that rely on install scripts"
+
+inputs:
+  skip-scripts-check:
+    description: "Skip the check for postinstall scripts (default: false)"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: false
+
+    - name: Set up Node.js envirtonment
+      uses: actions/setup-node@v3
+      with:
+        node-version: "lts/*"
+        cache: npm
+
+    - name: Run can-i-ignore-scripts check
+      if: ${{ inputs.skip-scripts-check != 'true' }}
+      run: ${{ github.action_path }}/bin/can-i-ignore-scripts.sh
+      shell: bash
