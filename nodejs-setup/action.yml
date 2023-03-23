@@ -1,0 +1,40 @@
+---
+
+name: Node.js setup and install
+description: This composite action performs Node.js setup and install with good caching defaults
+
+inputs:
+  node-version:
+    description: "Node.js version (e.g., 18.13.0) for set up"
+    required: false
+  node-version-file:
+    description: "Node.js version file (e.g., .nvmrc) for set up"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: false
+
+    - name: Set up Node.js environment using supplied Node.js version
+      id: setup-node
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: npm
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      id: cache-node-modules
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+
+    - name: Install dependencies
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ci
+      shell: bash
