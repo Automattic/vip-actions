@@ -26,6 +26,14 @@ xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
 xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
   --type attr -n "github_pr_number" -v "$GH_PR_NUMBER" ${NEW_RELIC_TEST_OUTPUT_PATH}
 
+# Add PR URL if it's a PR
+if [[ $GH_EVENT == "pull_request" ]]; then
+  GH_PR_URL="https://github.com/${GH_PROJECT}/pulls/${GH_PR_NUMBER}"
+
+  xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
+    --type attr -n "github_pr_url" -v "$GH_PR_URL" ${NEW_RELIC_TEST_OUTPUT_PATH}
+fi
+
 # use newrelic cli to send the junit report to newrelic
 result=$(newrelic reporting junit \
   --accountId "${NEW_RELIC_ACCOUNT_ID}" \

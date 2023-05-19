@@ -24,7 +24,8 @@ inputs:
     default: ${{ github.ref_name }}
   GITHUB_REPOSITORY:
     description: 'Name of organisation and repo of the project'
-    required: true
+    required: false
+    default: ${{ github.repository }}
   GITHUB_SHA:
     description: 'Commit that triggered the test run'
     required: false

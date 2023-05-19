@@ -8,17 +8,20 @@ This action makes a few changes to the results XML file before feeding it to New
 
 ## Inputs
 
-| Key                 | Required | Default | Description |
-| ------------------- | -------- | ------- | ----------- |
-| `accountId`         | **yes**  | -       | The account to post test run results to. This could also be a subaccount. |
-| `region`            | no       | US      | The region the account belongs to. |
-| `ingestLicenseKey` | **yes**  | -       | Your New Relic [License key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/) used for data ingest. |
-| `testOutputPath`    | **yes**  | -       | The path to the JUnit output file. |
-| `ghEventType`    | **no**  | ${{ github.event_name }}       | Type of event that triggered workflow. |
-| `ghEventBranchName`    | **no**  | ${{ github.ref }}       | Name of branch that triggered the workflow. |
+| Key  | Required | Default | Description |
+| ------------- | ------------- | ------------- | ------------- |
+| NEW_RELIC_INGEST_LICENSE_KEY  | Yes  | None  | Your New Relic Ingest License key.  |
+| NEW_RELIC_ACCOUNT_ID  | Yes  | None  | Your New Relic account ID. Custom events representing your test run will be posted to this account.  |
+| NEW_RELIC_REGION  | No  | US  | The geographical region for your New Relic account - US or EU. Default: US  |
+| NEW_RELIC_TEST_OUTPUT_PATH  | Yes  | None  | The path to the JUnit output file.  |
+| GITHUB_EVENT_TYPE  | No  | `github.event.name`  | The GitHub event type that triggered the workflow, eg., pull_request, push. Default: github.event_name  |
+| GITHUB_EVENT_BRANCH  | No  | `github.ref_name`  | The branch name for the GitHub event that triggered the workflow. Default: github.ref_name  |
+| GITHUB_REPOSITORY  | No  | `github.repository`  | Name of organisation and repo of the project in the format `organisation/repository`  |
+| GITHUB_SHA  | No  | Commit that triggered the test run  | `github.sha`  |
+| GITHUB_PR_NUMBER  | No  | `github.event.number`  | Pull request number  |
 
 ## Processing
-The `ghEventType` and `ghEventBranchName` are added to each test case in the junit xml file as "attributes". These attributes are saved in NewRelic as the columns in the event data and they can be used to query the results and build dashboard for test observability in the CI systems.
+The above mentioned attributes are added to the standard JUNIT XML file to create correlation between the test run and the CI before they are pushed to New Relic.
 
 ## Credit
 This action is heavily inspired by New Relic's own action: https://github.com/newrelic/junit-reporter-action/blob/main/README.md
