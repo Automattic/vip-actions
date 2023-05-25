@@ -18,10 +18,18 @@ inputs:
     description: 'The GitHub event type that triggered the workflow, eg., pull_request, push. Default: github.event_name'
     required: false
     default: ${{ github.event_name }}
-  GITHUB_EVENT_BRANCH:
-    description: 'The branch name for the GitHub event that triggered the workflow. Default: github.ref_name'
+  GITHUB_PUSH_BRANCH:
+    description: 'Github branch in the event of push. Default: github.ref_name'
     required: false
     default: ${{ github.ref_name }}
+  GITHUB_PULL_REQUEST_BASE_BRANCH:
+    description: 'Github base branch in the event of pull_request. Default: github.base_ref'
+    required: false
+    default: ${{ github.base_ref }}
+  GITHUB_PULL_REQUEST_HEAD_BRANCH:
+    description: 'Github head branch in the event of pull_request. Default: github.head_ref'
+    required: false
+    default: ${{ github.head_ref }}
   GITHUB_REPOSITORY:
     description: 'Name of organisation and repo of the project'
     required: false
@@ -32,6 +40,7 @@ inputs:
   GITHUB_PR_NUMBER:
     description: 'Pull request number'
     required: false
+    default: ${{ github.event.number }}
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -41,7 +50,9 @@ runs:
     NEW_RELIC_REGION: ${{ inputs.NEW_RELIC_REGION }}
     NEW_RELIC_TEST_OUTPUT_PATH: ${{ inputs.NEW_RELIC_TEST_OUTPUT_PATH }}
     GITHUB_EVENT_TYPE: ${{ inputs.GITHUB_EVENT_TYPE }}
-    GITHUB_EVENT_BRANCH: ${{ inputs.GITHUB_EVENT_BRANCH }}
+    GITHUB_PUSH_BRANCH: ${{ inputs.GITHUB_PUSH_BRANCH }}
     GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}
     GITHUB_SHA: ${{ inputs.GITHUB_SHA }}
     GITHUB_PR_NUMBER: ${{ inputs.GITHUB_PR_NUMBER }}
+    GITHUB_PULL_REQUEST_HEAD_BRANCH: ${{ inputs.GITHUB_PULL_REQUEST_HEAD_BRANCH }}
+    GITHUB_PULL_REQUEST_BASE_BRANCH: ${{ inputs.GITHUB_PULL_REQUEST_BASE_BRANCH }}
