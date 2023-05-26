@@ -1,0 +1,58 @@
+name: 'JUNIT New Relic Processor'
+description: 'Process JUnit XML output and send to New Relic'
+inputs:
+  NEW_RELIC_INGEST_LICENSE_KEY:
+    description: 'Your New Relic Ingest License key.'
+    required: true
+  NEW_RELIC_ACCOUNT_ID:
+    description: 'Your New Relic account ID. Custom events representing your test run will be posted to this account.'
+    required: true
+  NEW_RELIC_REGION:
+    description: 'The geographical region for your New Relic account - US or EU. Default: US'
+    required: false
+    default: US
+  NEW_RELIC_TEST_OUTPUT_PATH:
+    description: 'The path to the JUnit output file.'
+    required: true
+  GITHUB_EVENT_TYPE:
+    description: 'The GitHub event type that triggered the workflow, eg., pull_request, push. Default: github.event_name'
+    required: false
+    default: ${{ github.event_name }}
+  GITHUB_PUSH_BRANCH:
+    description: 'Github branch in the event of push. Default: github.ref_name'
+    required: false
+    default: ${{ github.ref_name }}
+  GITHUB_PULL_REQUEST_BASE_BRANCH:
+    description: 'Github base branch in the event of pull_request. Default: github.base_ref'
+    required: false
+    default: ${{ github.base_ref }}
+  GITHUB_PULL_REQUEST_HEAD_BRANCH:
+    description: 'Github head branch in the event of pull_request. Default: github.head_ref'
+    required: false
+    default: ${{ github.head_ref }}
+  GITHUB_REPOSITORY:
+    description: 'Name of organisation and repo of the project'
+    required: false
+    default: ${{ github.repository }}
+  GITHUB_SHA:
+    description: 'Commit that triggered the test run'
+    required: false
+  GITHUB_PR_NUMBER:
+    description: 'Pull request number'
+    required: false
+    default: ${{ github.event.number }}
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    NEW_RELIC_INGEST_LICENSE_KEY: ${{ inputs.NEW_RELIC_INGEST_LICENSE_KEY }}
+    NEW_RELIC_ACCOUNT_ID: ${{ inputs.NEW_RELIC_ACCOUNT_ID }}
+    NEW_RELIC_REGION: ${{ inputs.NEW_RELIC_REGION }}
+    NEW_RELIC_TEST_OUTPUT_PATH: ${{ inputs.NEW_RELIC_TEST_OUTPUT_PATH }}
+    GITHUB_EVENT_TYPE: ${{ inputs.GITHUB_EVENT_TYPE }}
+    GITHUB_PUSH_BRANCH: ${{ inputs.GITHUB_PUSH_BRANCH }}
+    GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}
+    GITHUB_SHA: ${{ inputs.GITHUB_SHA }}
+    GITHUB_PR_NUMBER: ${{ inputs.GITHUB_PR_NUMBER }}
+    GITHUB_PULL_REQUEST_HEAD_BRANCH: ${{ inputs.GITHUB_PULL_REQUEST_HEAD_BRANCH }}
+    GITHUB_PULL_REQUEST_BASE_BRANCH: ${{ inputs.GITHUB_PULL_REQUEST_BASE_BRANCH }}
