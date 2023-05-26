@@ -52,7 +52,9 @@ result=$(newrelic reporting junit \
 exitStatus=$?
 
 if [ $exitStatus -ne 0 ]; then
-  echo "::error:: $result"
+  echo "::error:: Unable to push results to New Relic. Exiting with: $result"
+else
+  echo "::success:: Successfully uploaded results to New Relic"
 fi
 
 exit $exitStatus
