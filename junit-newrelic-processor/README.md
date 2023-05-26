@@ -1,6 +1,6 @@
 # JUnit NewRelic Processor
 
-A Github Action to process Junit XML results and push them to NewRelic with as a custom event "TestRun".
+A Github Action to process JUnit XML results and push them to NewRelic as a custom event named "TestRun".
 
 NewRelic already has an inbuilt method to push "TestRun" custom event. The CLI method to do it is `newrelic reporting junit --path <testResults.XML>`. However, once the test results are pushed into NewRelic, they do not have any association with the source or the event that triggered those test cases.
 
