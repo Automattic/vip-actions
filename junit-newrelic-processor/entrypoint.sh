@@ -19,21 +19,16 @@ xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
 xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
   --type attr -n "event_type" -v "$GH_EVENT" ${NEW_RELIC_TEST_OUTPUT_PATH}
 
-if [[ $GH_EVENT == "push" ]]; then
-  GH_BRANCH=${GITHUB_PUSH_BRANCH}
-
-  xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
-  --type attr -n "trigger_branch" -v "$GH_BRANCH" ${NEW_RELIC_TEST_OUTPUT_PATH}
-
-elif [[ $GH_EVENT == "pull_request" ]]; then
+# Capture the branch name for PRs and other events
+if [[ $GH_EVENT == "pull_request" ]]; then
   GH_HEAD_BRANCH=${GITHUB_PULL_REQUEST_HEAD_BRANCH}
   GH_BASE_BRANCH=${GITHUB_PULL_REQUEST_BASE_BRANCH}
   GH_PR_URL="https://github.com/${GH_PROJECT}/pulls/${GH_PR_NUMBER}"
 
-    xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
+  xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
   --type attr -n "trigger_branch" -v "$GH_HEAD_BRANCH" ${NEW_RELIC_TEST_OUTPUT_PATH}
 
-    xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
+  xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
   --type attr -n "base_branch" -v "$GH_BASE_BRANCH" ${NEW_RELIC_TEST_OUTPUT_PATH}
 
   xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
@@ -41,6 +36,13 @@ elif [[ $GH_EVENT == "pull_request" ]]; then
 
   xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
     --type attr -n "pr_url" -v "$GH_PR_URL" ${NEW_RELIC_TEST_OUTPUT_PATH}
+
+else
+  # For all other events, inclusing dispatches, we can assume the branch is the one that triggered the workflow
+  GH_BRANCH=${GITHUB_PUSH_BRANCH}
+
+  xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
+  --type attr -n "trigger_branch" -v "$GH_BRANCH" ${NEW_RELIC_TEST_OUTPUT_PATH}
 fi
 
 # use newrelic cli to send the junit report to newrelic
