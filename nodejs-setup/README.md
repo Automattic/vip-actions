@@ -21,6 +21,20 @@ on:
   workflow_dispatch:
 
 jobs:
+  format:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup and install
+        uses: Automattic/vip-actions/nodejs-setup@trunk
+        with:
+          node-version-file: .nvmrc
+
+      - name: Run Prettier
+        run: npm run format
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
