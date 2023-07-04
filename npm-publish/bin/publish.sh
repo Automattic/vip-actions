@@ -6,7 +6,6 @@ set -o nounset   # error on undefined vars
 set -o pipefail  # error if piped command fails
 
 # Default variables
-NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 
 echo_title() {
@@ -14,22 +13,8 @@ echo_title() {
 	echo "== $1 =="
 }
 
-while getopts ":t:" option;
-do
-	case $option in
-		# npm major/minor/patch
-		t) NPM_VERSION_TYPE=$OPTARG ;;
-
-		\?) echo "Error: Invalid param / option specified"
-			exit 199 ;;
-   esac
-done
-
-# Validate release type value
-if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
-	echo "❌ Invalid release type specified. Please make sure the -t flag is one of major/minor/patch."
-	exit 200
-fi
+# @todo: Determine version upgrade type
+NPM_VERSION_TYPE="major" 
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
@@ -39,7 +24,6 @@ LOCAL_BRANCH=$(git branch --show-current)
 REMOTE_VERSION=$(npm view "$LOCAL_NAME" version)
 echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
-echo "✅ Will publish new $NPM_VERSION_TYPE release"
 
 # Validate npm is logged in and ready
 echo_title "Checking npm auth"
@@ -101,10 +85,10 @@ echo_title "npm publish (dry-run)"
 npm publish --access public --dry-run
 echo "✅ Dry run looks good"
 
-# npm version bump + git tag
-echo_title "npm version"
-NEW_VERSION=$( npm version "$NPM_VERSION_TYPE" -m "Publishing new $NPM_VERSION_TYPE version: %s" )
-echo "✅ Bumped version to $NEW_VERSION and created new tag"
+# Tag git version
+echo_title "Tag version in git"
+git tag version $LOCAL_VERSION"
+echo "✅ Tagged version in git"
 
 # git push
 echo_title "git push"
@@ -118,6 +102,7 @@ echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME
 
 # Version bump to dev
 # Not needed for release branches so we only do on the main branch
+# @todo: Adjust to be done in a branch, then PR and merge PR.
 if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	echo_title "npm version (to next dev)"
 
