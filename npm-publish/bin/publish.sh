@@ -95,7 +95,12 @@ echo_title "git push"
 git push --follow-tags
 echo "✅ Pushed version bump and tags"
 
-# Publish
+# Publish on GitHub
+echo_title "gh release create"
+gh release create $LOCAL_VERSION --generate-notes
+echo "✅ Released version $LOCAL_VERSION on GitHub"
+
+# Publish to NPM
 echo_title "npm publish"
 npm publish --access public
 echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
