@@ -90,7 +90,7 @@ echo "✅ Bumped version to $NEW_VERSION (no commit)"
 
 # Checkout branch for release
 echo_title "git checkout branch"
-NEW_BRANCH="release/$NEW_VERSION"
+NEW_BRANCH="release/$NPM_VERSION_TYPE-$NEW_VERSION"
 git checkout -b $NEW_BRANCH
 echo "✅ Check out git branch ($NEW_BRANCH)"
 
