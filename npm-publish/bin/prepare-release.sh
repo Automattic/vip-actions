@@ -85,7 +85,7 @@ echo "✅ Dry run looks good"
 
 # npm version bump (no commit)
 echo_title "npm version (no git commit nor tag)"
-NEW_VERSION=$( npm --no-git-tag-version  version "$NPM_VERSION_TYPE" -m "Publishing new $NPM_VERSION_TYPE version: %s" )
+NEW_VERSION=$( npm --no-git-tag-version  version "$NPM_VERSION_TYPE" )
 echo "✅ Bumped version to $NEW_VERSION (no commit)"
 
 # Checkout branch for release
@@ -105,6 +105,6 @@ git push --set-upstream origin $NEW_BRANCH
 echo "✅ Pushed version bump to GitHub"
 
 # Create pull request in GitHub
-echo_title "Create pull request in GitHub"
-PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New release: $NEW_VERSION" --body "Updates NPM package version number" --label '[ Type ] Changelog & version' -a @me`
-echo "✅ Created pull request: $PR_URL"
+#echo_title "Create pull request in GitHub"
+#PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New release: $NEW_VERSION" --body "Updates NPM package version number" --label '[ Type ] Changelog & version' -a @me`
+#echo "✅ Created pull request: $PR_URL"
