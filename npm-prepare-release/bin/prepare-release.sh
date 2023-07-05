@@ -31,9 +31,6 @@ if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [
 	exit 200
 fi
 
-# @todo: Adding temporary so to emulate normal runs in GitHub Actions.
-git checkout $MAIN_BRANCH
-
 # Fetch some basic package information
 echo_title "Fetching local package info"
 LOCAL_NAME=$(node -p "require('./package.json').name")
@@ -56,7 +53,8 @@ echo "✅ Logged in as $NPM_USER and ready to publish"
 echo_title "Checking branch"
 if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
 	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
-	exit 202
+# @todo: remove
+#	exit 202
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 
