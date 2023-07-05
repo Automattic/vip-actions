@@ -105,9 +105,7 @@ echo_title "npm publish"
 npm publish --access public
 echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
 
-# Version bump to dev
-# Not needed for release branches so we only do on the main branch
-# @todo: Adjust to be done in a branch, then PR and merge PR.
+# Version bump to dev - create a branch and a PR, then merge
 if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	echo_title "npm version (to next dev)"
 
