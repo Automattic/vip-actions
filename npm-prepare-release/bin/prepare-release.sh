@@ -81,10 +81,11 @@ echo "✅ npm install + npm test look good"
 
 sleep 15
 
+#@todo Remove
 # Publish with Dry Run
-echo_title "npm publish (dry-run)"
-npm publish --access public --dry-run
-echo "✅ Dry run looks good"
+#echo_title "npm publish (dry-run)"
+#npm publish --access public --dry-run
+#echo "✅ Dry run looks good"
 
 sleep 15
 
