@@ -96,7 +96,7 @@ git push --follow-tags
 echo "✅ Pushed version bump and tags"
 
 # Publish on GitHub
-echo_title "gh release create"
+echo_title "Publishing a new release on GitHub"
 gh release create $LOCAL_VERSION --generate-notes
 echo "✅ Released version $LOCAL_VERSION on GitHub"
 
