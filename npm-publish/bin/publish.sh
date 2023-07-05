@@ -87,7 +87,7 @@ echo "✅ Dry run looks good"
 
 # Tag git version
 echo_title "Tag version in git"
-git tag version $LOCAL_VERSION"
+git tag $LOCAL_VERSION"
 echo "✅ Tagged version in git"
 
 # git push
@@ -97,7 +97,7 @@ echo "✅ Pushed version bump and tags"
 
 # Publish on GitHub
 echo_title "Publishing a new release on GitHub"
-gh release create $LOCAL_VERSION --generate-notes
+gh release create $LOCAL_VERSION --generate-notes --verify-tag
 echo "✅ Released version $LOCAL_VERSION on GitHub"
 
 # Publish to NPM
