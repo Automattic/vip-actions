@@ -119,11 +119,29 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	fi
 
 	NEXT_LOCAL_DEV_VERSION=$( npm version --no-git-tag-version --preid "dev" "$NEXT_LOCAL_DEV_VERSION_TYPE" )
+
+	# Checkout branch for release
+	echo_title "Create new git branch, commit to git and create and merge pull request"
+	NEW_BRANCH="dev-release/$NEXT_LOCAL_DEV_VERSION"
+	git checkout -b $NEW_BRANCH
+	echo "✅ Check out git branch ($NEW_BRANCH)"
+
 	git add -u
 	git commit -m "Bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
-	git push
+	git push --follow-tags
+
+	echo "✅ Commit to GitHub repository ($NEW_BRANCH)"
 
 	NEXT_LOCAL_DEV_VERSION=$(node -p "require('./package.json').version")
-
 	echo "✅ Bumped local version to next $NEXT_LOCAL_DEV_VERSION_TYPE: $NEXT_LOCAL_DEV_VERSION"
+
+	# Create pull request in GitHub
+	echo_title "Create pull request in GitHub"
+	PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" -a @me`
+	echo "✅ Created pull request: $PR_URL"
+
+ 	# Merge pull request
+  	echo_title "Merge pull request"
+   	gh pr merge $PR_URL --admin --delete-branch
+        echo "✅ Merged pull request"
 fi
