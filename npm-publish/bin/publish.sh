@@ -115,7 +115,7 @@ echo_title "npm ci + test"
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
-gh release create $LOCAL_VERSION --generate-notes --verify-tag --target $MAIN_BRANCH 
+gh release create $LOCAL_VERSION --generate-notes --target $MAIN_BRANCH 
 echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
 # @todo: remove
