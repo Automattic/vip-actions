@@ -110,8 +110,6 @@ echo_title "push to GitHub, create/verify label and create pull request"
 git push --set-upstream origin $NEW_BRANCH
 echo "✅ Pushed version bump to GitHub"
 
-gh label list --search "$LABEL"
-
 LABEL='[ Type ] NPM version update'
 LABEL_CNT=`gh label list --search "$LABEL" | wc -l` ; echo 
 if [ "$LABEL_CNT" != 2 ] ; then
@@ -120,6 +118,9 @@ if [ "$LABEL_CNT" != 2 ] ; then
 else
 	echo "✅ Verified that label exists ($LABEL)"
 fi
+
+# @todo remove
+gh label list --search "$LABEL"
 
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
