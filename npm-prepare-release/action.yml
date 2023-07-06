@@ -6,8 +6,8 @@ inputs:
   NPM_TOKEN:
     description: 'The npm token used to publish the package.'
     required: true
-  GN_TOKEN:
-    description: 'The GitHub acces token used to create labels and pull requests.'
+  GH_TOKEN:
+    description: 'The GitHub access token used to create labels and pull requests.'
     required: true
   npm-version-type:
     description: 'The npm version type we are publishing.'
