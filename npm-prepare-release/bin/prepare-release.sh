@@ -11,6 +11,7 @@ MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}'
 
 @todo: Temporary, remove
 git fetch origin $MAIN_BRANCH
+git checkout $MAIN_BRANCH
 
 echo_title() {
 	echo ""
