@@ -9,9 +9,11 @@ set -o pipefail  # error if piped command fails
 NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 
-@todo: Temporary, remove
+# @todo: Temporary, remove
 git fetch origin $MAIN_BRANCH
 git checkout $MAIN_BRANCH
+
+sleep 15
 
 echo_title() {
 	echo ""
