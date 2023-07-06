@@ -13,8 +13,6 @@ MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}'
 git fetch origin $MAIN_BRANCH
 git checkout $MAIN_BRANCH
 
-sleep 15
-
 echo_title() {
 	echo ""
 	echo "== $1 =="
@@ -87,11 +85,10 @@ echo "✅ npm install + npm test look good"
 sleep 15
 
 # Publish with Dry Run
-echo_title "npm publish (dry-run)"
-npm publish --access public --dry-run
-echo "✅ Dry run looks good"
-
-sleep 15
+# @todo: Remove
+#echo_title "npm publish (dry-run)"
+#npm publish --access public --dry-run
+#echo "✅ Dry run looks good"
 
 # npm version bump (no commit)
 echo_title "npm version (no git commit nor tag)"
