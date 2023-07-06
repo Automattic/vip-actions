@@ -13,7 +13,7 @@ echo_title() {
 	echo "== $1 =="
 }
 
-echo "PR_NUMBER=$PR_NUMBER"
+gh pr view $PR_NUMBER
 
 # Determine release type
 echo_title "Determining NPM release type"
