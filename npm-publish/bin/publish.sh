@@ -13,6 +13,9 @@ echo_title() {
 	echo "== $1 =="
 }
 
+# Save original branch so we can check out again later
+ORIGINAL_BRANCH=$(git branch --show-current)
+
 # Determine release type
 echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
 gh pr checkout "$PR_NUMBER"
@@ -27,6 +30,8 @@ if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [
 else
 	echo "✅ NPM release type: $NPM_VERSION_TYPE"
 fi
+
+git checkout $ORIGINAL_BRANCH
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
@@ -48,7 +53,6 @@ echo "✅ Published version is $REMOTE_VERSION"
 
 # Validate current branch
 echo_title "Checking branch"
-# TODO: add support for release/** branch via [ ! "$LOCAL_BRANCH" == "$RELEASE_BRANCH_PATTERN" ] -- will need to add version checking support as well
 if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
 	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
 	exit 202
