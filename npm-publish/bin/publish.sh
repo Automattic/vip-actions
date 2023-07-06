@@ -113,20 +113,10 @@ echo_title "npm ci + test"
 # npm publish --access public --dry-run
 # echo "✅ Dry run looks good"
 
-# Tag git version
-echo_title "Tag version in git"
-git tag "$LOCAL_VERSION"
-echo "✅ Tagged version in git"
-
-# git push
-echo_title "git push"
-git push --follow-tags
-echo "✅ Pushed version bump and tags"
-
-# Publish on GitHub
-echo_title "Publishing a new release on GitHub"
-gh release create $LOCAL_VERSION --generate-notes --verify-tag
-echo "✅ Released version $LOCAL_VERSION on GitHub"
+# Publish on GitHub and tag
+echo_title "Publishing a new release on GitHub and tagging"
+gh release create $LOCAL_VERSION --generate-notes --verify-tag --target $MAIN_BRANCH 
+echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
 # @todo: remove
 # Publish to NPM
