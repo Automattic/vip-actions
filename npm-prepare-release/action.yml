@@ -45,4 +45,4 @@ runs:
       run: ${{ github.action_path }}/bin/prepare-release.sh -t ${{ inputs.npm-version-type }}
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
-        GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ inputs.GH_TOKEN }}
