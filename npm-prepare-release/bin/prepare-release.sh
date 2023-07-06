@@ -110,9 +110,11 @@ echo_title "push to GitHub, create/verify label and create pull request"
 git push --set-upstream origin $NEW_BRANCH
 echo "✅ Pushed version bump to GitHub"
 
+gh label list --search "$LABEL"
+
 LABEL='[ Type ] NPM version update'
 LABEL_CNT=`gh label list --search "$LABEL" | wc -l` ; echo 
-if [ "$LABEL_CNT" == 0 ] ; then
+if [ "$LABEL_CNT" != 2 ] ; then
 	gh label create "$LABEL" --color '#C2E0C6'
 	echo "✅ Created label ($LABEL) in GitHub"
 else
