@@ -6,6 +6,9 @@ inputs:
   NPM_TOKEN:
     description: 'The npm token used to publish the package.'
     required: true
+  GH_TOKEN:
+    description: 'The GitHub access token used to create labels and pull requests.'
+    required: true
   npm-version-type:
     description: 'The npm version type we are publishing.'
     required: true
@@ -45,3 +48,4 @@ runs:
       run: ${{ github.action_path }}/bin/publish.sh
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
+        GH_TOKEN: ${{ inputs.GH_TOKEN }}
