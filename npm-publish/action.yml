@@ -9,15 +9,9 @@ inputs:
   GH_TOKEN:
     description: 'The GitHub access token used to create labels and pull requests.'
     required: true
-  npm-version-type:
+  PR_NUMBER:
     description: 'The npm version type we are publishing.'
     required: true
-    type: choice
-    default: 'patch'
-    options:
-      - patch
-      - minor
-      - major
   node-version:
     description: 'The Node.js version to use in the Action'
     required: false
@@ -49,3 +43,4 @@ runs:
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
+        PR_NUMBER: ${{ inputs.PR_NUMBER }}
