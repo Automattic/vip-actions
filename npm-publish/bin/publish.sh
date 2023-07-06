@@ -13,18 +13,19 @@ echo_title() {
 	echo "== $1 =="
 }
 
-gh pr checkout "$PR_NUMBER"
-
 # Determine release type
-echo_title "Determining NPM release type"
-git branch
+echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
+gh pr checkout "$PR_NUMBER"
+echo "✅ Checked out PR"
+
 NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
-echo "✅ NPM release type: $NPM_VERSION_TYPE"
 
 # Validate release type value
 if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
 	echo "❌ Invalid release type found."
 	exit 200
+else
+	echo "✅ NPM release type: $NPM_VERSION_TYPE"
 fi
 
 # Fetch some basic package information
