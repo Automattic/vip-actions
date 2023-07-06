@@ -12,7 +12,7 @@ echo_title() {
 	echo ""
 	echo "== $1 =="
 }
-
+git branch --show-current
 # Save original branch so we can check out again later
 ORIGINAL_BRANCH=$(git branch --show-current)
 
@@ -32,6 +32,8 @@ else
 fi
 
 git checkout $ORIGINAL_BRANCH
+
+echo $ORIGINAL_BRANCH
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
