@@ -119,7 +119,7 @@ echo 'gh label list --search ...'
 gh label list --search "$LABEL"
 
 echo 'gh label list --search ... grep'
-gh label list --search "$LABEL" |grep -F "$LABEL"
+gh label list --search "$LABEL" | grep -F "$LABEL"
 
 echo 'gh label list --search ... grep... wc -l'
 LABEL_CNT=`gh label list --search "$LABEL" | grep -F "$LABEL" | wc -l` 
