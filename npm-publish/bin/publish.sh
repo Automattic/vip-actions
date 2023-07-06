@@ -30,7 +30,7 @@ fi
 
 # Merge pull request, wait and pull 
 echo_title "Merge pull request, pull merge from GitHub"
-gh pr merge "$PR_NUMBER"
+gh pr merge --squash "$PR_NUMBER"
 echo "✅ Merged pull request #$PR_NUMBER"
 
 sleep 15
