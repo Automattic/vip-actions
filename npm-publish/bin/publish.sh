@@ -15,6 +15,7 @@ echo_title() {
 
 # Determine release type
 echo_title "Determining NPM release type"
+git branch
 NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
 echo "✅ NPM release type: $NPM_VERSION_TYPE"
 
