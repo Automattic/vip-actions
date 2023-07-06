@@ -18,6 +18,8 @@ echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
 gh pr checkout "$PR_NUMBER"
 echo "✅ Checked out PR"
 
+# @todo: Verify author of PR is us
+
 NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
 
 # Validate release type value
@@ -33,6 +35,7 @@ echo_title "Merge pull request, pull merge from GitHub"
 gh pr merge --squash "$PR_NUMBER"
 echo "✅ Merged pull request #$PR_NUMBER"
 
+# @todo: Verify that latest commit is merging of PR
 sleep 15
 
 git fetch origin $MAIN_BRANCH
