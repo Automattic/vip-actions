@@ -13,15 +13,6 @@ echo_title() {
 	echo "== $1 =="
 }
 
-echo "branch"
-git branch --show-current
-echo "done"
-
-# Save original branch so we can check out again later
-ORIGINAL_BRANCH=$(git branch --show-current)
-
-echo $ORIGINAL_BRANCH
-
 # Determine release type
 echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
 gh pr checkout "$PR_NUMBER"
@@ -37,9 +28,18 @@ else
 	echo "✅ NPM release type: $NPM_VERSION_TYPE"
 fi
 
-git checkout $ORIGINAL_BRANCH
+# Merge pull request, wait and pull 
+echo_title "Merge pull request, pull merge from GitHub"
+gh pr merge "$PR_NUMBER"
+echo "✅ Merged pull request #$PR_NUMBER"
 
-echo $ORIGINAL_BRANCH
+sleep 15
+
+git checkout $MAIN_BRANCH
+echo "✅ Checked out branch $MAIN_BRANCH"
+
+git pull
+echo "✅ Pulled from GitHub"
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
