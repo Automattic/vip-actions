@@ -12,9 +12,15 @@ echo_title() {
 	echo ""
 	echo "== $1 =="
 }
+
+echo "branch"
 git branch --show-current
+echo "done"
+
 # Save original branch so we can check out again later
 ORIGINAL_BRANCH=$(git branch --show-current)
+
+echo $ORIGINAL_BRANCH
 
 # Determine release type
 echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
