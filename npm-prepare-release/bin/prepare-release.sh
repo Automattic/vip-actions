@@ -9,6 +9,9 @@ set -o pipefail  # error if piped command fails
 NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 
+@todo: Temporary, remove
+git fetch origin $MAIN_BRANCH
+
 echo_title() {
 	echo ""
 	echo "== $1 =="
@@ -53,8 +56,7 @@ echo "✅ Logged in as $NPM_USER and ready to publish"
 echo_title "Checking branch"
 if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
 	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
-# @todo: remove
-#	exit 202
+	exit 202
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 
@@ -81,11 +83,10 @@ echo "✅ npm install + npm test look good"
 
 sleep 15
 
-#@todo Remove
 # Publish with Dry Run
-#echo_title "npm publish (dry-run)"
-#npm publish --access public --dry-run
-#echo "✅ Dry run looks good"
+echo_title "npm publish (dry-run)"
+npm publish --access public --dry-run
+echo "✅ Dry run looks good"
 
 sleep 15
 
