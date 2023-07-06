@@ -118,6 +118,9 @@ gh label list
 echo 'gh label list --search ...'
 gh label list --search "$LABEL"
 
+grep --version
+grep --help
+
 echo 'gh label list --search ... grep'
 gh label list --search "$LABEL" | grep -F "$LABEL"
 
