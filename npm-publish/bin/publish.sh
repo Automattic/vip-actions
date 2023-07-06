@@ -35,11 +35,11 @@ echo "✅ Merged pull request #$PR_NUMBER"
 
 sleep 15
 
+git fetch $MAIN_BRANCH
+echo "✅ Fetched $MAIN_BRANCH from GitHub"
+
 git checkout $MAIN_BRANCH
 echo "✅ Checked out branch $MAIN_BRANCH"
-
-git pull
-echo "✅ Pulled from GitHub"
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
