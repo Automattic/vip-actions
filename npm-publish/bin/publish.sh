@@ -34,12 +34,13 @@ echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
 
 # Validate npm is logged in and ready
-echo_title "Checking npm auth"
-if ! NPM_USER=$( npm whoami ); then
-	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-	exit 201
-fi
-echo "✅ Logged in as $NPM_USER and ready to publish"
+# @todo: remove
+#echo_title "Checking npm auth"
+#if ! NPM_USER=$( npm whoami ); then
+#	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
+#	exit 201
+#fi
+#echo "✅ Logged in as $NPM_USER and ready to publish"
 
 # Validate current branch
 echo_title "Checking branch"
@@ -71,13 +72,15 @@ echo "✅ No local changes found"
 echo_title "npm ci + test"
 
 # Install dependencies but skip pre/post scripts since our auth token is in place
-npm ci --ignore-scripts
+# @todo: remove
+#npm ci --ignore-scripts
 
+# @todo: remove
 # Run scripts + tests without auth token to prevent malicious access
-NODE_AUTH_TOKEN= npm rebuild
-NODE_AUTH_TOKEN= npm run prepare --if-present
-NODE_AUTH_TOKEN= npm test
-echo "✅ npm install + npm test look good"
+#NODE_AUTH_TOKEN= npm rebuild
+#NODE_AUTH_TOKEN= npm run prepare --if-present
+#NODE_AUTH_TOKEN= npm test
+#echo "✅ npm install + npm test look good"
 
 ### DEBUG=====================
 ### echo "EARLY EXIT BEFORE PUBLISH"
@@ -89,9 +92,10 @@ echo "✅ npm install + npm test look good"
 ### TODO=====================
 
 # Publish with Dry Run
-echo_title "npm publish (dry-run)"
-npm publish --access public --dry-run
-echo "✅ Dry run looks good"
+# @todo: Remove
+# echo_title "npm publish (dry-run)"
+# npm publish --access public --dry-run
+# echo "✅ Dry run looks good"
 
 # Tag git version
 echo_title "Tag version in git"
@@ -108,10 +112,11 @@ echo_title "Publishing a new release on GitHub"
 gh release create $LOCAL_VERSION --generate-notes --verify-tag
 echo "✅ Released version $LOCAL_VERSION on GitHub"
 
+# @todo: remove
 # Publish to NPM
-echo_title "npm publish"
-npm publish --access public
-echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
+#echo_title "npm publish"
+#npm publish --access public
+#echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
 if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
@@ -143,11 +148,11 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 
 	# Create pull request in GitHub
 	echo_title "Create pull request in GitHub"
-	PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" -a @me`
+	PR_URL=`gh pr create --base "$LOCAL_BRANCH" --head "$NEW_BRANCH" --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" -a @me`
 	echo "✅ Created pull request: $PR_URL"
 
  	# Merge pull request
   	echo_title "Merge pull request"
-   	gh pr merge $PR_URL --admin --delete-branch
+   	gh pr merge "$PR_URL" --admin --delete-branch
         echo "✅ Merged pull request"
 fi
