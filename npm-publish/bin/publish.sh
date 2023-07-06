@@ -13,8 +13,16 @@ echo_title() {
 	echo "== $1 =="
 }
 
-# @todo: Determine version upgrade type
-NPM_VERSION_TYPE="major" 
+# Determine release type
+echo_title "Determining NPM release type"
+NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
+echo "✅ NPM release type: $NPM_VERSION_TYPE"
+
+# Validate release type value
+if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
+	echo "❌ Invalid release type found."
+	exit 200
+fi
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
