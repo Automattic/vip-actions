@@ -145,7 +145,6 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	# Configure git
  	echo_title "Configure git"
 	git config push.autoSetupRemote true
-	git remote set-url --push origin https://gudmdharalds:$GH_TOKEN@github.com/gudmdharalds/test-npm-publish
  	echo "✅ Configured git to auto-setup remote origins"
 
 	# Checkout branch for release
@@ -156,10 +155,11 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 
 	git add -u
 	git commit -m "Bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
- 	
-	git push --follow-tags
 	echo "✅ Commit to GitHub repository ($NEW_BRANCH)"
-
+  	# @todo: remove
+	#git push --follow-tags
+ 	echo "✅ Pushed commit to GitHub repository"
+	
 	NEXT_LOCAL_DEV_VERSION=$(node -p "require('./package.json').version")
 	echo "✅ Bumped local version to next $NEXT_LOCAL_DEV_VERSION_TYPE: $NEXT_LOCAL_DEV_VERSION"
 
@@ -168,6 +168,8 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	PR_URL=`gh pr create --base "$LOCAL_BRANCH" --head "$NEW_BRANCH" --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" -a @me`
 	echo "✅ Created pull request: $PR_URL"
 
+	sleep 15
+ 
  	# Merge pull request
   	echo_title "Merge pull request"
    	gh pr merge "$PR_URL" --admin --delete-branch
