@@ -82,8 +82,6 @@ NODE_AUTH_TOKEN= npm run prepare --if-present
 NODE_AUTH_TOKEN= npm test
 echo "✅ npm install + npm test look good"
 
-sleep 15
-
 # Publish with Dry Run
 # @todo: Remove
 #echo_title "npm publish (dry-run)"
@@ -95,22 +93,16 @@ echo_title "npm version (no git commit nor tag)"
 NEW_VERSION=$( npm --no-git-tag-version  version "$NPM_VERSION_TYPE" )
 echo "✅ Bumped version to $NEW_VERSION (no commit)"
 
-sleep 15
-
 # Checkout branch for release
 echo_title "git checkout branch"
 NEW_BRANCH="release/$NPM_VERSION_TYPE-$NEW_VERSION"
 git checkout -b $NEW_BRANCH
 echo "✅ Check out git branch ($NEW_BRANCH)"
 
-sleep 15 
-
 # git commit
 echo_title "git commit"
 git commit -m "Commiting new version of package" package.json
 echo "✅ Commit new version of package to git branch"
-
-sleep 15
 
 # git push
 echo_title "push to GitHub, create/verify label and create pull request"
