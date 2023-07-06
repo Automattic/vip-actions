@@ -19,6 +19,7 @@ gh pr checkout "$PR_NUMBER"
 echo "✅ Checked out PR"
 
 # @todo: Verify author of PR is us
+# @todo: Verify that package.json is changed
 
 NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
 
