@@ -140,6 +140,13 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	fi
 
 	NEXT_LOCAL_DEV_VERSION=$( npm version --no-git-tag-version --preid "dev" "$NEXT_LOCAL_DEV_VERSION_TYPE" )
+	echo "✅ Determined next local dev version: $NEXT_LOCAL_DEV_VERSION"
+
+	# Configure git
+ 	echo_title "Configure git"
+	git config push.autoSetupRemote true
+	git remote set-url --push origin https://gudmdharalds:$GH_TOKEN@github.com/gudmdharalds/test-npm-publish
+ 	echo "✅ Configured git to auto-setup remote origins"
 
 	# Checkout branch for release
 	echo_title "Create new git branch, commit to git and create and merge pull request"
@@ -149,7 +156,7 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 
 	git add -u
 	git commit -m "Bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
- 	git config push.autoSetupRemote true
+ 	
 	git push --follow-tags
 	echo "✅ Commit to GitHub repository ($NEW_BRANCH)"
 
