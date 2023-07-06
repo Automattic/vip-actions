@@ -115,7 +115,7 @@ echo_title "npm ci + test"
 
 # Tag git version
 echo_title "Tag version in git"
-git tag $LOCAL_VERSION"
+git tag "$LOCAL_VERSION"
 echo "✅ Tagged version in git"
 
 # git push
