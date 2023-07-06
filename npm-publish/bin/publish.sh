@@ -35,7 +35,7 @@ echo "✅ Merged pull request #$PR_NUMBER"
 
 sleep 15
 
-git fetch $MAIN_BRANCH
+git fetch origin $MAIN_BRANCH
 echo "✅ Fetched $MAIN_BRANCH from GitHub"
 
 git checkout $MAIN_BRANCH
