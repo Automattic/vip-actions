@@ -113,11 +113,21 @@ echo "✅ Commit new version of package to git branch"
 sleep 15
 
 # git push
-echo_title "git push"
+echo_title "push to GitHub, create/verify label and create pull request"
+
 git push --set-upstream origin $NEW_BRANCH
 echo "✅ Pushed version bump to GitHub"
 
+LABEL='[ Type ] NPM version update'
+LABEL_CNT=`gh label list --search $LABEL | wc -l` ; echo 
+if [ "$LABEL_CNT" == 0 ] ; then
+	gh label create $LABEL --color '#C2E0C6'
+	echo "✅ Created label ($LABEL) in GitHub"
+else
+	echo "✅ Verified that label exists ($LABEL)"
+fi
+
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
-PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New release: $NEW_VERSION" --body "## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>" --label '[ Type ] NPM version update' -a @me`
+PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label $LABEL -a @me`
 echo "✅ Created pull request: $PR_URL"
