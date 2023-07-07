@@ -9,10 +9,6 @@ set -o pipefail  # error if piped command fails
 NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 
-# @todo: Temporary, remove
-git fetch origin $MAIN_BRANCH
-git checkout $MAIN_BRANCH
-
 echo_title() {
 	echo ""
 	echo "== $1 =="
@@ -43,15 +39,7 @@ LOCAL_BRANCH=$(git branch --show-current)
 REMOTE_VERSION=$(npm view "$LOCAL_NAME" version)
 echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
-echo "✅ Will publish new $NPM_VERSION_TYPE release"
-
-# Validate npm is logged in and ready
-echo_title "Checking npm auth"
-if ! NPM_USER=$( npm whoami ); then
-	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-	exit 201
-fi
-echo "✅ Logged in as $NPM_USER and ready to publish"
+echo "✅ Will prepare new $NPM_VERSION_TYPE release"
 
 # Validate current branch
 echo_title "Checking branch"
