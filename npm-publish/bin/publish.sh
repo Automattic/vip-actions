@@ -8,6 +8,7 @@ set -o pipefail  # error if piped command fails
 # Default variables
 NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
+RELEASE_BRANCH=$MAIN_BRANCH
 
 echo_title() {
 	echo ""
@@ -19,6 +20,9 @@ do
 	case $option in
 		# npm major/minor/patch
 		t) NPM_VERSION_TYPE=$OPTARG ;;
+
+		# release branch
+		b) [ -n "$OPTARG" ] && RELEASE_BRANCH=$OPTARG ;;
 
 		\?) echo "Error: Invalid param / option specified"
 			exit 199 ;;
@@ -52,8 +56,8 @@ echo "✅ Logged in as $NPM_USER and ready to publish"
 # Validate current branch
 echo_title "Checking branch"
 # TODO: add support for release/** branch via [ ! "$LOCAL_BRANCH" == "$RELEASE_BRANCH_PATTERN" ] -- will need to add version checking support as well
-if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
-	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
+if [ "$LOCAL_BRANCH" != "$RELEASE_BRANCH" ]; then
+	echo "❌ You can only publish from the '$RELEASE_BRANCH' branch. Please switch branches and try again."
 	exit 202
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
@@ -118,7 +122,7 @@ echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME
 
 # Version bump to dev
 # Not needed for release branches so we only do on the main branch
-if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
+if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	echo_title "npm version (to next dev)"
 
 	NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
