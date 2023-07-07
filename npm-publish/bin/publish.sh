@@ -40,7 +40,7 @@ fi
 
 # Merge pull request, wait and pull 
 echo_title "Merge pull request, pull merge from GitHub"
-gh pr merge --squash "$PR_NUMBER"
+gh pr merge --squash --admin --delete-branch "$PR_NUMBER" 
 echo "✅ Merged pull request #$PR_NUMBER"
 
 # @todo: Verify that latest commit is merging of PR
