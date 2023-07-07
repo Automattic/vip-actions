@@ -13,15 +13,20 @@ echo_title() {
 	echo "== $1 =="
 }
 
+# Determine which files were changed in PR
+echo_title "Determining which files were changed in PR #$PR_NUMBER"
+PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only`
+
+if [ "$PR_FILES_CHANGED" != "package.json" ] ; then
+	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
+else
+	echo "✅ Determined only package.json is changed in PR"
+fi
+
 # Determine release type
 echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
 gh pr checkout "$PR_NUMBER"
 echo "✅ Checked out PR"
-
-# @todo: Verify author of PR is us
-# @todo: Verify that package.json is changed
-
-gh pr diff "$PR_NUMBER" --name-only 
 
 NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
 
