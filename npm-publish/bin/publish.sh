@@ -21,6 +21,8 @@ echo "✅ Checked out PR"
 # @todo: Verify author of PR is us
 # @todo: Verify that package.json is changed
 
+gh pr diff "$PR_NUMBER" --name 
+
 NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
 
 # Validate release type value
