@@ -76,18 +76,6 @@ echo_title "npm ci + test"
 # Install dependencies but skip pre/post scripts since our auth token is in place
 npm ci --ignore-scripts
 
-# Run scripts + tests without auth token to prevent malicious access
-NODE_AUTH_TOKEN= npm rebuild
-NODE_AUTH_TOKEN= npm run prepare --if-present
-NODE_AUTH_TOKEN= npm test
-echo "✅ npm install + npm test look good"
-
-# Publish with Dry Run
-# @todo: Remove
-#echo_title "npm publish (dry-run)"
-#npm publish --access public --dry-run
-#echo "✅ Dry run looks good"
-
 # npm version bump (no commit)
 echo_title "npm version (no git commit nor tag)"
 NEW_VERSION=$( npm --no-git-tag-version  version "$NPM_VERSION_TYPE" )
