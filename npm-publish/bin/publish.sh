@@ -178,6 +178,6 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
  
  	# Merge pull request
   	echo_title "Merge pull request"
-   	gh pr merge "$PR_URL" --admin --delete-branch
+   	gh pr merge "$PR_URL" --admin --squash --delete-branch
         echo "✅ Merged pull request"
 fi
