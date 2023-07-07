@@ -3,9 +3,6 @@
 name: Prepare to publish package to npm
 description: Creates a pull request that updates version number of the npm package.
 inputs:
-  NPM_TOKEN:
-    description: 'The npm token used to publish the package.'
-    required: true
   GH_TOKEN:
     description: 'The GitHub access token used to create labels and pull requests.'
     required: true
