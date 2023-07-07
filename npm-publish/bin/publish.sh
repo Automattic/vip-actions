@@ -163,8 +163,7 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	git add -u
 	git commit -m "Bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
 	echo "✅ Commit to GitHub repository ($NEW_BRANCH)"
-  	# @todo: remove
-	#git push --follow-tags
+	git push --follow-tags
  	echo "✅ Pushed commit to GitHub repository"
 	
 	NEXT_LOCAL_DEV_VERSION=$(node -p "require('./package.json').version")
