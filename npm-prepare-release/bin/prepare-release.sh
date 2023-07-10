@@ -32,6 +32,7 @@ if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [
 fi
 
 # @todo: remove
+git fetch origin $MAIN_BRANCH
 git checkout $MAIN_BRANCH
 
 # Fetch some basic package information
