@@ -90,6 +90,8 @@ echo_title "push to GitHub, create/verify label and create pull request"
 git push --set-upstream origin $NEW_BRANCH
 echo "✅ Pushed version bump to GitHub"
 
+GH_DEBUG=api
+
 LABEL='[ Type ] NPM version update'
 gh label create "$LABEL" --color '#C2E0C6' --force
 echo "✅ Created/updated label ($LABEL) in GitHub"
