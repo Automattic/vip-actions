@@ -31,6 +31,9 @@ if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [
 	exit 200
 fi
 
+# @todo: remove
+git checkout $MAIN_BRANCH
+
 # Fetch some basic package information
 echo_title "Fetching local package info"
 LOCAL_NAME=$(node -p "require('./package.json').name")
