@@ -99,7 +99,7 @@ echo_title "Create pull request in GitHub"
 
 git status
 
-GH_DEBUG=api gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" -a @me
+GH_DEBUG=api gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" 
 
-PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" -a @me`
+PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL"`
 echo "✅ Created pull request: $PR_URL"
