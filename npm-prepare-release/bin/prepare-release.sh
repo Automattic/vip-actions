@@ -31,7 +31,7 @@ if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [
 	exit 200
 fi
 
-# @todo: remove
+# @todo: remove, only needed when started from test-branch
 git fetch origin $MAIN_BRANCH
 git checkout $MAIN_BRANCH
 
@@ -81,7 +81,7 @@ echo "✅ Check out git branch ($NEW_BRANCH)"
 
 # git commit
 echo_title "git commit"
-git commit -m "Commiting new version of package" package.json
+git commit -a -m "Commiting new version of package"
 echo "✅ Commit new version of package to git branch"
 
 # git push
@@ -96,10 +96,6 @@ echo "✅ Created/updated label ($LABEL) in GitHub"
 
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
-
-git status
-
-GH_DEBUG=api gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" 
 
 PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL"`
 echo "✅ Created pull request: $PR_URL"
