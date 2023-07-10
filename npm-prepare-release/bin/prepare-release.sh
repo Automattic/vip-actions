@@ -90,13 +90,16 @@ echo_title "push to GitHub, create/verify label and create pull request"
 git push --set-upstream origin $NEW_BRANCH
 echo "✅ Pushed version bump to GitHub"
 
-GH_DEBUG=api
+
 
 LABEL='[ Type ] NPM version update'
-gh label create "$LABEL" --color '#C2E0C6' --force
+GH_DEBUG=api gh label create "$LABEL" --color '#C2E0C6' --force
 echo "✅ Created/updated label ($LABEL) in GitHub"
 
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
+
+GH_DEBUG=api gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" -a @me
+
 PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" -a @me`
 echo "✅ Created pull request: $PR_URL"
