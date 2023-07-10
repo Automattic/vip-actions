@@ -45,3 +45,4 @@ runs:
       run: ${{ github.action_path }}/bin/prepare-release.sh -t ${{ inputs.npm-version-type }}
       env:
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GH_TOKEN }}
