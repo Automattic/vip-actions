@@ -44,5 +44,4 @@ runs:
       # @see https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun
       run: ${{ github.action_path }}/bin/prepare-release.sh -t ${{ inputs.npm-version-type }}
       env:
-        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
