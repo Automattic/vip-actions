@@ -96,5 +96,5 @@ echo "✅ Created/updated label ($LABEL) in GitHub"
 
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
-PR_URL=`gh pr create --base $LOCAL_BRANCH --head $NEW_BRANCH --title "New release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" -a @me`
+PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and should be auto-merged.</p>' --label "$LABEL" -a @me`
 echo "✅ Created pull request: $PR_URL"
