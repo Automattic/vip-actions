@@ -42,6 +42,7 @@ runs:
         git config --global user.email "<22917138+wpcomvip-bot@users.noreply.github.com>"
     
     - name: Test
+      shell: bash
       run: echo ${{ github.actor }}
 
     - name: Validate & Publish
