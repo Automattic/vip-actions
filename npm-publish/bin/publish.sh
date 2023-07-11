@@ -91,7 +91,7 @@ echo "✅ No local changes found"
 echo_title "npm ci + test"
 
 # Install dependencies but skip pre/post scripts since our auth token is in place
-# @todo: remove
+# @todo: enable again
 #npm ci --ignore-scripts
 
 # @todo: enable again
