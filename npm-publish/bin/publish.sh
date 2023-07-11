@@ -23,7 +23,7 @@ if [ "$PR_FILES_CHANGED" != "0" ] ; then
 	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
  	exit 200
 else
-	echo "✅ Determined only package.json is changed in PR"
+	echo "✅ Determined only .json files are changed in PR"
 fi
 
 # Determine release type
