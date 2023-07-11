@@ -15,7 +15,7 @@ echo_title() {
 
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
-PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -v \.json`
+PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -v '\.json'`
 
 if [ "$PR_FILES_CHANGED" != "" ] ; then
 	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
