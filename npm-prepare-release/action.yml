@@ -43,6 +43,6 @@ runs:
       # Must use `github.action_path` since the script is located in a separate checkout than the calling repo.
       # @see https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun
       #run: ${{ github.action_path }}/bin/prepare-release.sh -t ${{ inputs.npm-version-type }}
-      run: echo ${{ github.actor.login }}
+      run: echo ${{ github.sender.login }}
       env:
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
