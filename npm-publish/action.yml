@@ -41,4 +41,5 @@ runs:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_HEAD_REF: ${{ github.head_ref }}
         PR_ASSIGNEE: ${{ github.actor }}
