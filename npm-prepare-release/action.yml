@@ -40,6 +40,9 @@ runs:
       run: |
         git config --global user.name "WordPress VIP Bot"
         git config --global user.email "<22917138+wpcomvip-bot@users.noreply.github.com>"
+    
+    - name: Test
+      run: echo ${{ github.actor }}
 
     - name: Validate & Publish
       shell: bash
