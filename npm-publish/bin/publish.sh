@@ -26,12 +26,9 @@ else
 	echo "✅ Determined only .json files are changed in PR"
 fi
 
-# Determine release type
-echo_title "Checking out PR #$PR_NUMBER and determining NPM release type"
-gh pr checkout "$PR_NUMBER"
-echo "✅ Checked out PR"
-
-NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
+# Determine and validate release type
+echo_title "Determining and validating NPM release type"
+NPM_VERSION_TYPE=`echo $PR_HEAD_REF | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
 
 # Validate release type value
 if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
