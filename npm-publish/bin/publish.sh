@@ -54,7 +54,7 @@ echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
 
 # Validate npm is logged in and ready
-# @todo: remove
+# @todo: enable again
 #echo_title "Checking npm auth"
 #if ! NPM_USER=$( npm whoami ); then
 #	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
@@ -94,7 +94,7 @@ echo_title "npm ci + test"
 # @todo: remove
 #npm ci --ignore-scripts
 
-# @todo: remove
+# @todo: enable again
 # Run scripts + tests without auth token to prevent malicious access
 #NODE_AUTH_TOKEN= npm rebuild
 #NODE_AUTH_TOKEN= npm run prepare --if-present
@@ -111,7 +111,7 @@ echo_title "npm ci + test"
 ### TODO=====================
 
 # Publish with Dry Run
-# @todo: Remove
+# @todo: enable again
 # echo_title "npm publish (dry-run)"
 # npm publish --access public --dry-run
 # echo "✅ Dry run looks good"
@@ -121,7 +121,7 @@ echo_title "Publishing a new release on GitHub and tagging"
 gh release create $LOCAL_VERSION --generate-notes --target $MAIN_BRANCH 
 echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
-# @todo: remove
+# @todo: enable again
 # Publish to NPM
 #echo_title "npm publish"
 #npm publish --access public
