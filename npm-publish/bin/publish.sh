@@ -15,7 +15,9 @@ echo_title() {
 
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
-PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -q -v \.json | wc -l`
+set +o errexit # temporary do not exit on error because grep will exit with error when nothing is found
+PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -v '\.json' | wc -l`
+set -o errexit # exit on error
 
 if [ "$PR_FILES_CHANGED" != "0" ] ; then
 	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
