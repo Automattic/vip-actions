@@ -166,7 +166,7 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 
 	# Create pull request in GitHub
 	echo_title "Create pull request in GitHub"
-	PR_URL=`gh pr create --base "$MAIN_BRANCH" --head "$NEW_BRANCH" --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number"`
+	PR_URL=`gh pr create --base "$MAIN_BRANCH" --head "$NEW_BRANCH" --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" --assignee "$PR_ASSIGNEE"`
 	echo "✅ Created pull request: $PR_URL"
 
 	sleep 15
