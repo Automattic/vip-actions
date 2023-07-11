@@ -168,11 +168,4 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	echo_title "Create pull request in GitHub"
 	PR_URL=`gh pr create --base "$MAIN_BRANCH" --head "$NEW_BRANCH" --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" --assignee "$PR_ASSIGNEE"`
 	echo "✅ Created pull request: $PR_URL"
-
-	sleep 15
- 
- 	# Merge pull request
-  	echo_title "Merge pull request"
-   	gh pr merge "$PR_URL" --admin --squash --delete-branch
-        echo "✅ Merged pull request"
 fi
