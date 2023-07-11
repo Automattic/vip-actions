@@ -9,12 +9,6 @@ inputs:
   GH_TOKEN:
     description: 'The GitHub access token used to create labels and pull requests.'
     required: true
-  PR_NUMBER:
-    description: 'The npm version type we are publishing.'
-    required: true
-  PR_ASSIGNEE:
-    description: 'The assignee of the resulting pull request.'
-    required: true
   node-version:
     description: 'The Node.js version to use in the Action'
     required: false
@@ -46,5 +40,5 @@ runs:
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
-        PR_NUMBER: ${{ inputs.PR_NUMBER }}
-        PR_ASSIGNEE: ${{ inputs.PR_ASSIGNEE }}
+        PR_NUMBER: ${{ github.event.pull_request.PR_NUMBER }}
+        PR_ASSIGNEE: ${{ github.actor }}
