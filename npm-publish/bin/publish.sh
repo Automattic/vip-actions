@@ -15,10 +15,11 @@ echo_title() {
 
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
-PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -P -v '\.json'`
+PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only`
 
 if [ "$PR_FILES_CHANGED" != "" ] ; then
 	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
+ 	exit 200
 else
 	echo "✅ Determined only package.json is changed in PR"
 fi
@@ -33,7 +34,7 @@ NPM_VERSION_TYPE=`git branch | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'
 # Validate release type value
 if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
 	echo "❌ Invalid release type found."
-	exit 200
+	exit 201
 else
 	echo "✅ NPM release type: $NPM_VERSION_TYPE"
 fi
@@ -58,7 +59,7 @@ echo "✅ Published version is $REMOTE_VERSION"
 #echo_title "Checking npm auth"
 #if ! NPM_USER=$( npm whoami ); then
 #	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-#	exit 201
+#	exit 202
 #fi
 #echo "✅ Logged in as $NPM_USER and ready to publish"
 
@@ -66,7 +67,7 @@ echo "✅ Published version is $REMOTE_VERSION"
 echo_title "Checking branch"
 if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
 	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
-	exit 202
+	exit 203
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 
@@ -75,7 +76,7 @@ echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 echo_title "Checking for local changes"
 if ! git diff-index --quiet HEAD --; then
 	echo "❌ Working directory has uncommitted changes; please clean up before proceeding."
-	exit 203
+	exit 204
 fi
 echo "✅ No local changes found"
 
