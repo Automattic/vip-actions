@@ -15,9 +15,9 @@ echo_title() {
 
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
-PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only`
+PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -v \.json`
 
-if [ "$PR_FILES_CHANGED" != "package.json" ] ; then
+if [ "$PR_FILES_CHANGED" != "" ] ; then
 	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
 else
 	echo "✅ Determined only package.json is changed in PR"
@@ -38,18 +38,10 @@ else
 	echo "✅ NPM release type: $NPM_VERSION_TYPE"
 fi
 
-# Merge pull request, wait and pull 
-echo_title "Merge pull request, pull merge from GitHub"
-gh pr merge --squash --admin "$PR_NUMBER" 
-echo "✅ Merged pull request #$PR_NUMBER"
-
-# @todo: Verify that latest commit is merging of PR
-sleep 15
-
-git fetch origin $MAIN_BRANCH
+git fetch origin "$MAIN_BRANCH"
 echo "✅ Fetched $MAIN_BRANCH from GitHub"
 
-git checkout $MAIN_BRANCH
+git checkout "$MAIN_BRANCH"
 echo "✅ Checked out branch $MAIN_BRANCH"
 
 # Fetch some basic package information
