@@ -6,9 +6,6 @@ inputs:
   GH_TOKEN:
     description: 'The GitHub access token used to create labels and pull requests.'
     required: true
-  PR_ASSIGNEE:
-    description: 'The assignee of the resulting pull request.'
-    required: true
   npm-version-type:
     description: 'The npm version type we are publishing.'
     required: true
@@ -41,16 +38,11 @@ runs:
         git config --global user.name "WordPress VIP Bot"
         git config --global user.email "<22917138+wpcomvip-bot@users.noreply.github.com>"
     
-    - name: Test
-      shell: bash
-      run: echo ${{ github.actor }}
-
     - name: Validate & Publish
       shell: bash
       # Must use `github.action_path` since the script is located in a separate checkout than the calling repo.
       # @see https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun
-      #run: ${{ github.action_path }}/bin/prepare-release.sh -t ${{ inputs.npm-version-type }}
-      run: echo test
+      run: ${{ github.action_path }}/bin/prepare-release.sh -t ${{ inputs.npm-version-type }}
       env:
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
         PR_ASSIGNEE: ${{ github.actor }}
