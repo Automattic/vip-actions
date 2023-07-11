@@ -9,6 +9,9 @@ inputs:
   GH_TOKEN:
     description: 'The GitHub access token used to create labels and pull requests.'
     required: true
+  PR_NUMBER:
+    description: 'Integer number (ID) of pull request merged.'
+    required: true
   node-version:
     description: 'The Node.js version to use in the Action'
     required: false
@@ -40,5 +43,5 @@ runs:
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
-        PR_NUMBER: ${{ github.event.pull_request.PR_NUMBER }}
+        PR_NUMBER: ${{ inputs.PR_NUMBER }}
         PR_ASSIGNEE: ${{ github.actor }}
