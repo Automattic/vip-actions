@@ -54,13 +54,12 @@ echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
 
 # Validate npm is logged in and ready
-# @todo: enable again
-#echo_title "Checking npm auth"
-#if ! NPM_USER=$( npm whoami ); then
-#	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-#	exit 202
-#fi
-#echo "✅ Logged in as $NPM_USER and ready to publish"
+echo_title "Checking npm auth"
+if ! NPM_USER=$( npm whoami ); then
+	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
+	exit 202
+fi
+echo "✅ Logged in as $NPM_USER and ready to publish"
 
 # Validate current branch
 echo_title "Checking branch"
@@ -91,15 +90,13 @@ echo "✅ No local changes found"
 echo_title "npm ci + test"
 
 # Install dependencies but skip pre/post scripts since our auth token is in place
-# @todo: enable again
-#npm ci --ignore-scripts
+npm ci --ignore-scripts
 
-# @todo: enable again
 # Run scripts + tests without auth token to prevent malicious access
-#NODE_AUTH_TOKEN= npm rebuild
-#NODE_AUTH_TOKEN= npm run prepare --if-present
-#NODE_AUTH_TOKEN= npm test
-#echo "✅ npm install + npm test look good"
+NODE_AUTH_TOKEN= npm rebuild
+NODE_AUTH_TOKEN= npm run prepare --if-present
+NODE_AUTH_TOKEN= npm test
+echo "✅ npm install + npm test look good"
 
 ### DEBUG=====================
 ### echo "EARLY EXIT BEFORE PUBLISH"
@@ -111,21 +108,19 @@ echo_title "npm ci + test"
 ### TODO=====================
 
 # Publish with Dry Run
-# @todo: enable again
-# echo_title "npm publish (dry-run)"
-# npm publish --access public --dry-run
-# echo "✅ Dry run looks good"
+echo_title "npm publish (dry-run)"
+npm publish --access public --dry-run
+echo "✅ Dry run looks good"
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
 gh release create $LOCAL_VERSION --generate-notes --target $MAIN_BRANCH 
 echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
-# @todo: enable again
 # Publish to NPM
-#echo_title "npm publish"
-#npm publish --access public
-#echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
+echo_title "npm publish"
+npm publish --access public
+echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
 if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
