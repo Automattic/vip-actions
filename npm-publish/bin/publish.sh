@@ -120,7 +120,7 @@ echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 # Publish to NPM
 echo_title "npm publish"
 npm publish --access public
-echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $NEW_VERSION"
+echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $LOCAL_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
 if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
