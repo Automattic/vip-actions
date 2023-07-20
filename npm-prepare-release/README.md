@@ -9,7 +9,8 @@ Usage of the two actions is compatible with [GitHub Branch Protection](https://d
 ## Inputs
 
 * `GH_TOKEN`: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token.
-* `npm-version-type`: (optional) the npm version type (`major`|`minor`|`patch`) being published.
+* `npm-version-type`: (required) the npm version type (`major`|`minor`|`patch`) being published.
+* `node-version`: (optional) the Node.js version to use for the action.
 
 ## Using the action
 
@@ -18,6 +19,7 @@ Add the following to a `.yml` file in `.github/workflows` in the main branch of 
 ```yaml
 ---
 name: Prepare new npm release
+
 on:
   workflow_dispatch:
     inputs:
