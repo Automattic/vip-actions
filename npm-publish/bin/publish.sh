@@ -158,6 +158,6 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 
 	# Create pull request in GitHub
 	echo_title "Create pull request in GitHub"
-	PR_URL=`gh pr create --base "$MAIN_BRANCH" --head "$NEW_BRANCH" --title "New dev release: $NEXT_LOCAL_DEV_VERSION" --body "Updates NPM package version number" --assignee "$PR_ASSIGNEE"`
+	PR_URL=`gh pr create --base "$MAIN_BRANCH" --head "$NEW_BRANCH" --title "New develop release: $NEXT_LOCAL_DEV_VERSION" --body $'## Description \n\n<p>This pull request updates the NPM package version number to the next develop version. Merge when convenient - this will not trigger publishing to npm.</p>' --assignee "$PR_ASSIGNEE"`
 	echo "✅ Created pull request: $PR_URL"
 fi
