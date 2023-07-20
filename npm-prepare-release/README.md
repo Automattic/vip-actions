@@ -9,6 +9,7 @@ Usage of the two workflows is compatible with [GitHub Branch Protection](https:/
 ## Inputs
 
 * `npm-version-type`: (optional) the npm version type (`major`|`minor`|`patch`) being published.
+* `GH_TOKEN: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token.
 
 ## Using the workflow
 
