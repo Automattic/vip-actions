@@ -93,5 +93,5 @@ echo "✅ Created/updated label ($LABEL) in GitHub"
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
 
-PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and can be merged when suitable.</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
+PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and can be merged when suitable. Merging will automatically trigger publishing to npm (if everything is correctly set up).</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
 echo "✅ Created pull request: $PR_URL"
