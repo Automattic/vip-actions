@@ -6,9 +6,13 @@ The `npm-prepare-release` workflow should be called first using manual dispatch.
 
 Usage of the two workflows is compatible with [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and requires only the standard GitHub Actions access token provided (with read-write permission). No GitHub bot account is needed.
 
-## Example usage
+## Inputs
 
-Add the following to a `.yml` file in the `.github/workflows` in the GitHub repository you want to publish to npm:
+* `npm-version-type`: (optional) the npm version type (`major`|`minor`|`patch`) being published.
+
+## Using the workflow
+
+Add the following to a `.yml` file in `.github/workflows` in the main branch of the GitHub repository you want to publish to npm:
 
 ```
 ---
@@ -40,3 +44,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           npm-version-type: ${{ inputs.npm-version-type }}
 ```
+
+You can then browse to `Actions` in the repository and start the workflow. A pull request should appear after a few seconds.
+
