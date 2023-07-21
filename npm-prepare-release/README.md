@@ -8,8 +8,6 @@ Note that a custom release branch can be used instead of the main branch. This w
 
 Usage of the two actions is compatible with [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and requires only the standard GitHub Actions access token provided (with read-write permission). No GitHub bot account is needed.
 
-
-
 ## Inputs
 
 * `GH_TOKEN`: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token (used in example).
