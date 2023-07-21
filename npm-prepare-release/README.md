@@ -47,11 +47,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run npm-prepare-release
-        uses: Automattic/vip-actions/npm-prepare-release@latest
+        uses: Automattic/vip-actions/npm-prepare-release@vX.Y.Z
         with:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           npm-version-type: ${{ inputs.npm-version-type }}
 ```
+
+Add any custom input values and set the version to the latest published one.
 
 You can then browse to `Actions` in the repository and start the action. A pull request should appear after a few seconds.
 
