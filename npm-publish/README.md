@@ -40,11 +40,13 @@ jobs:
     runs-on: ubuntu-latest
     if: contains( github.event.pull_request.labels.*.name, '[ Type ] NPM version update' ) && startsWith( github.head_ref, 'release/') && github.event.pull_request.merged == true
     steps:
-      - uses: Automattic/vip-actions/npm-publish@trunk
+      - uses: Automattic/vip-actions/npm-publish@vX.Y.Z
         with:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
+
+Add any custom input values and set the version to the latest published one.
 
 4. Go to Actions > npm publish > Run workflow.
 5. Enjoy!
