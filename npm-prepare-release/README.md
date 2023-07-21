@@ -11,6 +11,7 @@ Usage of the two actions is compatible with [GitHub Branch Protection](https://d
 * `GH_TOKEN`: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token (used in example).
 * `npm-version-type`: (required) the npm version type (`major`|`minor`|`patch`) being published.
 * `node-version`: (optional) the Node.js version to use for the action.
+* `release-branch`: (optional) custom branch to use for releasing the package instead of the main branch. 
 
 ## Using the action
 
