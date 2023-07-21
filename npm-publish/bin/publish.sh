@@ -6,7 +6,7 @@ set -o nounset   # error on undefined vars
 set -o pipefail  # error if piped command fails
 
 # Default variables
-MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
+RELEASE_BRANCH=`echo $PR_HEAD_REF | awk  -F '--' '{print $2}' | awk -F '--' '{print $1}'`
 
 echo_title() {
 	echo ""
@@ -38,11 +38,11 @@ else
 	echo "✅ NPM release type: $NPM_VERSION_TYPE"
 fi
 
-git fetch origin "$MAIN_BRANCH"
-echo "✅ Fetched $MAIN_BRANCH from GitHub"
+git fetch origin "$RELEASE_BRANCH"
+echo "✅ Fetched $RELEASE_BRANCH from GitHub"
 
-git checkout "$MAIN_BRANCH"
-echo "✅ Checked out branch $MAIN_BRANCH"
+git checkout "$RELEASE_BRANCH"
+echo "✅ Checked out branch $RELEASE_BRANCH"
 
 # Fetch some basic package information
 echo_title "Fetching local package info"
@@ -63,8 +63,8 @@ echo "✅ Logged in as $NPM_USER and ready to publish"
 
 # Validate current branch
 echo_title "Checking branch"
-if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
-	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
+if [ "$LOCAL_BRANCH" != "$RELEASE_BRANCH" ]; then
+	echo "❌ You can only publish from the '$RELEASE_BRANCH' branch. Please switch branches and try again."
 	exit 203
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
@@ -114,7 +114,7 @@ echo "✅ Dry run looks good"
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
-gh release create $LOCAL_VERSION --generate-notes --target $MAIN_BRANCH 
+gh release create $LOCAL_VERSION --generate-notes --target $RELEASE_BRANCH 
 echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
 # Publish to NPM
@@ -123,7 +123,7 @@ npm publish --access public
 echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $LOCAL_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
-if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
+if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	echo_title "npm version (to next dev)"
 
 	NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
@@ -159,6 +159,6 @@ if [ "$LOCAL_BRANCH" == "$MAIN_BRANCH" ]; then
 	# Create pull request in GitHub
 	echo_title "Create pull request in GitHub"
 	LABEL='[ Type ] NPM version update'
- 	PR_URL=`gh pr create --base "$MAIN_BRANCH" --head "$NEW_BRANCH" --title "New develop release: $NEXT_LOCAL_DEV_VERSION" --body $'## Description \n\n<p>This pull request updates the NPM package version number to the next develop version. Merge when convenient - this will not trigger publishing to npm.</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
+ 	PR_URL=`gh pr create --base "$RELEASE_BRANCH" --head "$NEW_BRANCH" --title "New develop release: $NEXT_LOCAL_DEV_VERSION" --body $'## Description \n\n<p>This pull request updates the NPM package version number to the next develop version. Merge when convenient - this will not trigger publishing to npm.</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
 	echo "✅ Created pull request: $PR_URL"
 fi
