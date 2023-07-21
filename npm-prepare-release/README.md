@@ -2,9 +2,13 @@
 
 This action prepares a repository for publishing to npm and is designed to work in tandem with the [npm-publish](../npm-publish/README.md) action.
 
-The `npm-prepare-release` action should be called first using manual dispatch. Once added to a repository and run, it will increase the npm package's version number in accordance with input from the caller (requested when dispatched). It will then commit this change to the GitHub repository, and create a new pull request that is assigned to the caller of the action. The caller should review and merge the pull request once they feel their changes are ready.
+The `npm-prepare-release` action should be called first using manual dispatch. Once added to a repository and run, it will increase the npm package's version number in accordance with input from the caller (requested when dispatched). This is normally expected to be done from the main branch of the repository. It will then commit this change to the GitHub repository, and create a new pull request that is assigned to the caller of the action. The caller should review and merge the pull request once they feel their changes are ready.
+
+Note that a custom release branch can be used instead of the main branch. This will have to be configured using a custom input value (see below). 
 
 Usage of the two actions is compatible with [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and requires only the standard GitHub Actions access token provided (with read-write permission). No GitHub bot account is needed.
+
+
 
 ## Inputs
 
