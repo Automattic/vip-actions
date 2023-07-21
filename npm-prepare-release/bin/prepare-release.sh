@@ -15,7 +15,7 @@ echo_title() {
 	echo "== $1 =="
 }
 
-while getopts ":t:" option;
+while getopts ":t:b:" option;
 do
 	case $option in
 		# npm major/minor/patch
