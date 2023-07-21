@@ -15,13 +15,13 @@ inputs:
       - patch
       - minor
       - major
-  release-branch:
-    description: 'The branch to use for the release.'
-    required: false
   node-version:
     description: 'The Node.js version to use in the Action'
     required: false
     default: 'lts/*'
+  release-branch:
+    description: 'The branch to use for the release.'
+    required: false
 
 runs:
   using: "composite"
