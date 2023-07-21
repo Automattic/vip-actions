@@ -8,6 +8,7 @@ set -o pipefail  # error if piped command fails
 # Default variables
 NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
+RELEASE_BRANCH="$MAIN_BRANCH"
 
 echo_title() {
 	echo ""
@@ -19,7 +20,10 @@ do
 	case $option in
 		# npm major/minor/patch
 		t) NPM_VERSION_TYPE=$OPTARG ;;
-
+  
+		# release branch
+		b) [ -n "$OPTARG" ] && RELEASE_BRANCH=$OPTARG ;;
+  
 		\?) echo "Error: Invalid param / option specified"
 			exit 199 ;;
    esac
@@ -43,8 +47,8 @@ echo "✅ Will prepare new $NPM_VERSION_TYPE release"
 
 # Validate current branch
 echo_title "Checking branch"
-if [ "$LOCAL_BRANCH" != "$MAIN_BRANCH" ]; then
-	echo "❌ You can only publish from the '$MAIN_BRANCH' branch. Please switch branches and try again."
+if [ "$LOCAL_BRANCH" != "$RELEASE_BRANCH" ]; then
+	echo "❌ You can only publish from the '$RELEASE_BRANCH' branch. Please switch branches and try again."
 	exit 202
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
@@ -93,5 +97,5 @@ echo "✅ Created/updated label ($LABEL) in GitHub"
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
 
-PR_URL=`gh pr create --base $MAIN_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and can be merged when suitable. Merging will automatically trigger publishing to npm (if everything is correctly set up).</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
+PR_URL=`gh pr create --base $RELEASE_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and can be merged when suitable. Merging will automatically trigger publishing to npm (if everything is correctly set up).</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
 echo "✅ Created pull request: $PR_URL"
