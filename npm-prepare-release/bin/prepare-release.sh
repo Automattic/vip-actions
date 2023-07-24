@@ -76,7 +76,7 @@ echo "✅ Bumped version to $NEW_VERSION (no commit)"
 # Checkout branch for release
 echo_title "git checkout branch"
 NEW_BRANCH="release/$NPM_VERSION_TYPE--$RELEASE_BRANCH--$NEW_VERSION-$RANDOM"
-git checkout -b $NEW_BRANCH
+git checkout -b "$NEW_BRANCH"
 echo "✅ Checked out git branch ($NEW_BRANCH)"
 
 # git commit
@@ -87,7 +87,7 @@ echo "✅ Commit new version of package to git branch"
 # git push
 echo_title "push to GitHub, create/verify label and create pull request"
 
-git push --set-upstream origin $NEW_BRANCH
+git push --set-upstream origin "$NEW_BRANCH"
 echo "✅ Pushed version bump to GitHub"
 
 LABEL='[ Type ] NPM version update'
@@ -97,5 +97,5 @@ echo "✅ Created/updated label ($LABEL) in GitHub"
 # Create pull request in GitHub
 echo_title "Create pull request in GitHub"
 
-PR_URL=`gh pr create --base $RELEASE_BRANCH --head $NEW_BRANCH --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and can be merged when suitable. Merging will automatically trigger publishing to npm (if everything is correctly set up).</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
+PR_URL=`gh pr create --base "$RELEASE_BRANCH" --head "$NEW_BRANCH" --title "New package release: $NEW_VERSION" --body $'## Description \n\n<p>This pull request updates the npm package version number and can be merged when suitable. Merging will automatically trigger publishing to npm (if everything is correctly set up).</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
 echo "✅ Created pull request: $PR_URL"
