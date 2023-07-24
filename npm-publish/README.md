@@ -2,7 +2,7 @@
 
 This action will publish a GitHub repository to npm using GitHub Actions and is designed to work in tandem with the [npm-prepare-release](../npm-prepare-release/README.md) action. It is compatible with GitHub's Branch Protection.
 
-The `npm-prepare-release` action is meant to be called first and will create a pull request. The `npm-publish` action is meant to be called automatically once the pull request is merged. It will publish to npm after running light validation (verify the pull request contains only certain changes, running `npm test`, and more), publish to npm, create a new GitHub release and add a tag. Finally, it will create a pull request to upgrade to the next develop version, which is assigned to the original caller of `npm-prepare-release` to review and merge.
+The `npm-prepare-release` action is meant to be called first and will create a pull request. The `npm-publish` action is meant to be called automatically once the pull request is merged. It will publish to npm after running light validation (verify the pull request contains only expected changes, running `npm test`, and more), publish to npm, create a new GitHub release and add a version tag to the repository. Finally, it will create a pull request to upgrade to the next develop version, which is assigned to the user who merged the first pull request.
 
 ## Inputs
 
