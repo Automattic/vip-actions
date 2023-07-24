@@ -114,7 +114,7 @@ echo "✅ Dry run looks good"
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
-gh release create $LOCAL_VERSION --generate-notes --target $RELEASE_BRANCH 
+gh release create "$LOCAL_VERSION" --generate-notes --target "$RELEASE_BRANCH"
 echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
 # Publish to NPM
@@ -144,7 +144,7 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	# Checkout branch for release
 	echo_title "Create new git branch, commit to git and create and merge pull request"
 	NEW_BRANCH="dev-release/$NEXT_LOCAL_DEV_VERSION"
-	git checkout -b $NEW_BRANCH
+	git checkout -b "$NEW_BRANCH"
 	echo "✅ Check out git branch ($NEW_BRANCH)"
 
 	git add -u
