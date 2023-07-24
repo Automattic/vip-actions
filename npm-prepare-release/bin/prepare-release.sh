@@ -49,7 +49,7 @@ echo "✅ Will prepare new $NPM_VERSION_TYPE release"
 echo_title "Checking branch"
 if [ "$LOCAL_BRANCH" != "$RELEASE_BRANCH" ]; then
 	echo "❌ You can only publish from the '$RELEASE_BRANCH' branch. Please switch branches and try again."
-	exit 202
+	exit 201
 fi
 echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 
@@ -58,7 +58,7 @@ echo "✅ On a valid release branch ($LOCAL_BRANCH)"
 echo_title "Checking for local changes"
 if ! git diff-index --quiet HEAD --; then
 	echo "❌ Working directory has uncommitted changes; please clean up before proceeding."
-	exit 203
+	exit 202
 fi
 echo "✅ No local changes found"
 
