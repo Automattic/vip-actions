@@ -25,7 +25,7 @@ The `npm-prepare-release` action is meant to be called first and will create a p
 },
 ```
 
-3. Add the following to a `.yml` file in `.github/workflows` in the main branch of the GitHub repository you want to publish to npm:
+3. Add the following to a `npm-publish.yml` file in `.github/workflows` in the main branch of the GitHub repository you want to publish to npm:
 
 ```yaml
 ---
