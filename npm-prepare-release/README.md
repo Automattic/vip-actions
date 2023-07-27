@@ -17,7 +17,7 @@ Usage of the two actions is compatible with [GitHub Branch Protection](https://d
 
 ## Using the action
 
-Add the following to a `.yml` file in `.github/workflows` in the main branch of the GitHub repository you want to publish to npm:
+Add the following to a `npm-prepare-release.yml` file in `.github/workflows` in the main branch of the GitHub repository you want to publish to npm:
 
 ```yaml
 ---
