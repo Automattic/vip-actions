@@ -13,6 +13,9 @@ inputs:
     description: 'The Node.js version to use in the Action'
     required: false
     default: 'lts/*'
+  provenance:
+    description: 'Generate provenance statement for the published package.'
+    default: 'false'
 
 runs:
   using: "composite"
@@ -43,3 +46,4 @@ runs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         PR_HEAD_REF: ${{ github.head_ref }}
         PR_ASSIGNEE: ${{ github.actor }}
+        PROVENANCE: ${{ inputs.provenance }}
