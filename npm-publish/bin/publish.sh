@@ -120,7 +120,7 @@ echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 # Publish to NPM
 echo_title "npm publish"
 OPTIONS="--access public"
-if [ "${PROVENANCE}" = "true" ]; then
+if [ "${PROVENANCE}" = "true" ] && [ "${CI:-}" = "true" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
 	OPTIONS="${OPTIONS} --provenance"
 fi
 
