@@ -6,7 +6,7 @@ set -o nounset   # error on undefined vars
 set -o pipefail  # error if piped command fails
 
 # Default variables
-RELEASE_BRANCH=`echo $PR_HEAD_REF | awk  -F '--' '{print $2}' | awk -F '--' '{print $1}'`
+RELEASE_BRANCH=$(echo "$PR_HEAD_REF" | awk  -F '--' '{print $2}' | awk -F '--' '{print $1}')
 
 echo_title() {
 	echo ""
@@ -16,7 +16,7 @@ echo_title() {
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
 set +o errexit # temporary do not exit on error because grep will exit with error when nothing is found
-PR_FILES_CHANGED=`gh pr diff "$PR_NUMBER" --name-only | grep -v '\.json' | wc -l`
+PR_FILES_CHANGED=$(gh pr diff "$PR_NUMBER" --name-only | grep -vFc '.json')
 set -o errexit # exit on error
 
 if [ "$PR_FILES_CHANGED" != "0" ] ; then
@@ -28,7 +28,7 @@ fi
 
 # Determine and validate release type
 echo_title "Determining and validating NPM release type"
-NPM_VERSION_TYPE=`echo $PR_HEAD_REF | awk -F '/' '{print $2}' | awk -F '-' '{print $1}'`
+NPM_VERSION_TYPE=$(echo "$PR_HEAD_REF" | awk -F '/' '{print $2}' | awk -F '-' '{print $1}')
 
 # Validate release type value
 if [ "$NPM_VERSION_TYPE" != "major" ] && [ "$NPM_VERSION_TYPE" != "minor" ] && [ "$NPM_VERSION_TYPE" != "patch" ]; then
@@ -93,9 +93,9 @@ echo_title "npm ci + test"
 npm ci --ignore-scripts
 
 # Run scripts + tests without auth token to prevent malicious access
-NODE_AUTH_TOKEN= npm rebuild
-NODE_AUTH_TOKEN= npm run prepare --if-present
-NODE_AUTH_TOKEN= npm test
+NODE_AUTH_TOKEN='' npm rebuild
+NODE_AUTH_TOKEN='' npm run prepare --if-present
+NODE_AUTH_TOKEN='' npm test
 echo "✅ npm install + npm test look good"
 
 ### DEBUG=====================
@@ -165,6 +165,6 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	# Create pull request in GitHub
 	echo_title "Create pull request in GitHub"
 	LABEL='[ Type ] NPM version update'
-	PR_URL=`gh pr create --base "$RELEASE_BRANCH" --head "$NEW_BRANCH" --title "New develop release: $NEXT_LOCAL_DEV_VERSION" --body $'## Description \n\n<p>This pull request updates the NPM package version number to the next develop version. Merge when convenient - this will not trigger publishing to npm.</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE"`
+	PR_URL=$(gh pr create --base "$RELEASE_BRANCH" --head "$NEW_BRANCH" --title "New develop release: $NEXT_LOCAL_DEV_VERSION" --body $'## Description \n\n<p>This pull request updates the NPM package version number to the next develop version. Merge when convenient - this will not trigger publishing to npm.</p>' --label "$LABEL" --assignee "$PR_ASSIGNEE")
 	echo "✅ Created pull request: $PR_URL"
 fi
