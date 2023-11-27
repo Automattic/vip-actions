@@ -9,7 +9,7 @@ The `npm-prepare-release` action is meant to be called first and will create a p
 * `NPM_TOKEN`: (required) the npm token used to publish the package.
 * `GH_TOKEN`: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token (used in example).
 * `node-version`: (optional) the Node.js version to use for the Action.
-* `provenance`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
+* `PROVENANCE`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
 
 ## Using the action
 
@@ -56,7 +56,7 @@ With this configuration applied, the package will now be automatically published
 ## Required Permissions
 
 * `contents: write` to publish a new release on GitHub;
-* `pull-requests: write` to create a pull request to update package versionl
+* `pull-requests: write` to create a pull request to update package version.
 * `id-token: write` to generate provenance statement (only when `provenance` is set to `true`)
 
 # Inspired by
