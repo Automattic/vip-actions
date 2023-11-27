@@ -56,8 +56,8 @@ With this configuration applied, the package will now be automatically published
 ## Required Permissions
 
 * `contents: write` to publish a new release on GitHub;
-* `pull-requests: write` to create a pull request to update package version.
-* `id-token: write` to generate provenance statement (only when `provenance` is set to `true`)
+* `pull-requests: write` to create a pull request to update package version;
+* `id-token: write` to generate provenance statement (only when `provenance` is set to `true`).
 
 # Inspired by
 
