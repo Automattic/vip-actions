@@ -7,8 +7,8 @@ This action will publish a prerelease version of the package to npm with the spe
 * `NPM_TOKEN`: (required) the npm token used to publish the package.
 * `GH_TOKEN`: (optional) the GitHub access token to use (default: `${{ github.token }}`).
 * `node-version`: (optional) the Node.js version to use for the Action.
-* `npm-tag`: (optional) NPM [distribution tag](https://docs.npmjs.com/adding-dist-tags-to-packages) (default: `next`)
-* `provenance`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
+* `NPM_TAG`: (optional) NPM [distribution tag](https://docs.npmjs.com/adding-dist-tags-to-packages) (default: `next`).
+* `PROVENANCE`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
 
 ## Using the action
 
@@ -52,8 +52,8 @@ jobs:
       - uses: Automattic/vip-actions/npm-publish-prerelease@master
         with:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          npm-tag: ${{ inputs.npm-tag }}
-          provenance: ${{ inputs.provenance }}
+          NPM_TAG: ${{ inputs.npm-tag }}
+          PROVENANCE: ${{ inputs.provenance }}
 ```
 
 4. Ensure that tokens can be used to publish the relevant npm package and that the particular token used has permissions to do so.

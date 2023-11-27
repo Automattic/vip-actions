@@ -12,10 +12,10 @@ inputs:
     description: 'The Node.js version to use in the Action'
     required: false
     default: 'lts/*'
-  provenance:
+  PROVENANCE:
     description: 'Generate provenance statement for the published package.'
     default: 'false'
-  npm-tag:
+  NPM_TAG:
     description: 'The npm tag to use when publishing the package.'
     default: 'next'
 
@@ -46,5 +46,5 @@ runs:
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
-        PROVENANCE: ${{ inputs.provenance }}
-        NPM_TAG: ${{ inputs.npm-tag }}
+        PROVENANCE: ${{ inputs.PROVENANCE }}
+        NPM_TAG: ${{ inputs.NPM_TAG }}
