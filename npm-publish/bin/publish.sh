@@ -119,7 +119,13 @@ echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
 # Publish to NPM
 echo_title "npm publish"
-npm publish --access public
+OPTIONS="--access public"
+if [ "${PROVENANCE}" = "true" ] && [ "${CI:-}" = "true" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+	OPTIONS="${OPTIONS} --provenance"
+fi
+
+# shellcheck disable=SC2086 # We want to pass the options as multiple arguments
+npm publish ${OPTIONS}
 echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $LOCAL_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
@@ -137,9 +143,9 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	echo "✅ Determined next local dev version: $NEXT_LOCAL_DEV_VERSION"
 
 	# Configure git
- 	echo_title "Configure git"
+	echo_title "Configure git"
 	git config push.autoSetupRemote true
- 	echo "✅ Configured git to auto-setup remote origins"
+	echo "✅ Configured git to auto-setup remote origins"
 
 	# Checkout branch for release
 	echo_title "Create new git branch, commit to git and create and merge pull request"
@@ -151,7 +157,7 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	git commit -m "Bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
 	echo "✅ Commit to GitHub repository ($NEW_BRANCH)"
 	git push --follow-tags
- 	echo "✅ Pushed commit to GitHub repository"
+	echo "✅ Pushed commit to GitHub repository"
 	
 	NEXT_LOCAL_DEV_VERSION=$(node -p "require('./package.json').version")
 	echo "✅ Bumped local version to next $NEXT_LOCAL_DEV_VERSION_TYPE: $NEXT_LOCAL_DEV_VERSION"
