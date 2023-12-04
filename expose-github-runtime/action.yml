@@ -1,0 +1,15 @@
+name: Expose GitHub runtime
+description: This action exposes the GitHub runtime to the workflow
+
+runs:
+  using: composite
+  steps:
+    - name: Expose runtime
+      uses: actions/github-script@v7
+      with:
+        script: |
+          Object.keys(process.env).forEach((key) => {
+            if (key.startsWith('ACTIONS_')) {
+              core.exportVariable(key, process.env[key]);
+            }
+          });
