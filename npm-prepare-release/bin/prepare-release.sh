@@ -20,13 +20,13 @@ do
 	case $option in
 		# npm major/minor/patch
 		t) NPM_VERSION_TYPE=$OPTARG ;;
-  
+
 		# release branch
 		b) [ -n "$OPTARG" ] && RELEASE_BRANCH=$OPTARG ;;
-  
+
 		\?) echo "Error: Invalid param / option specified"
 			exit 199 ;;
-   esac
+	esac
 done
 
 # Validate release type value
@@ -81,7 +81,7 @@ echo "✅ Checked out git branch ($NEW_BRANCH)"
 
 # git commit
 echo_title "git commit"
-git commit -a -m "Commiting new version of package"
+git commit -a -m "chore: bump package version to ${NEW_VERSION}"
 echo "✅ Commit new version of package to git branch"
 
 # git push
