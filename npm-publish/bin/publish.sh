@@ -154,7 +154,11 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
 	echo "✅ Check out git branch ($NEW_BRANCH)"
 
 	git add -u
-	git commit -m "chore: bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
+	if [ "${CONVENTIONAL_COMMITS:-}" = 'true' ]; then
+		git commit -m "chore: bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
+	else
+		git commit -m "Bump to next $NEXT_LOCAL_DEV_VERSION_TYPE: ($NEXT_LOCAL_DEV_VERSION)"
+	fi
 	echo "✅ Commit to GitHub repository ($NEW_BRANCH)"
 	git push --follow-tags
 	echo "✅ Pushed commit to GitHub repository"

@@ -81,7 +81,11 @@ echo "✅ Checked out git branch ($NEW_BRANCH)"
 
 # git commit
 echo_title "git commit"
-git commit -a -m "chore: bump package version to ${NEW_VERSION}"
+if [ "${CONVENTIONAL_COMMITS:-}" = 'true' ]; then
+	git commit -a -m "chore: bump package version to ${NEW_VERSION}"
+else
+	git commit -a -m "Bump package version to ${NEW_VERSION}"
+fi
 echo "✅ Commit new version of package to git branch"
 
 # git push
