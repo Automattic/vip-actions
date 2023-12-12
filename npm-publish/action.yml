@@ -16,6 +16,9 @@ inputs:
   PROVENANCE:
     description: 'Generate provenance statement for the published package.'
     default: 'false'
+  CONVENTIONAL_COMMITS:
+    description: 'Follow the Conventional Commits specification when generating commit message.'
+    default: 'false'
 
 runs:
   using: "composite"
@@ -47,3 +50,4 @@ runs:
         PR_HEAD_REF: ${{ github.head_ref }}
         PR_ASSIGNEE: ${{ github.actor }}
         PROVENANCE: ${{ inputs.PROVENANCE }}
+        CONVENTIONAL_COMMITS: ${{ inputs.CONVENTIONAL_COMMITS }}

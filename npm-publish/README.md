@@ -10,6 +10,7 @@ The `npm-prepare-release` action is meant to be called first and will create a p
 * `GH_TOKEN`: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token (used in example).
 * `node-version`: (optional) the Node.js version to use for the Action.
 * `PROVENANCE`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
+* `CONVENTIONAL_COMMITS`: (optional) set to `true` to generate commit messages that follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) specification.
 
 ## Using the action
 

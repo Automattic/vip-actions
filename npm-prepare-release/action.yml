@@ -22,6 +22,9 @@ inputs:
   release-branch:
     description: 'The branch to use for the release.'
     required: false
+  conventional-commits:
+    description: 'Follow the Conventional Commits specification when generating commit message.'
+    default: 'false'
 
 runs:
   using: "composite"
@@ -49,3 +52,4 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
         PR_ASSIGNEE: ${{ github.actor }}
+        CONVENTIONAL_COMMITS: ${{ inputs.conventional-commits }}

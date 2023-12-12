@@ -4,7 +4,7 @@ This action prepares a repository for publishing to npm and is designed to work 
 
 The `npm-prepare-release` action should be called first using manual dispatch. Once added to a repository and run, it will increase the npm package's version number in accordance with input from the caller (requested when dispatched). This is normally expected to be done from the main branch of the repository. It will then commit this change to the GitHub repository, and create a new pull request that is assigned to the caller of the action. The caller should review and merge the pull request once they feel their changes are ready.
 
-Note that a custom release branch can be used instead of the main branch. This will have to be configured using a custom input value (see below). 
+Note that a custom release branch can be used instead of the main branch. This will have to be configured using a custom input value (see below).
 
 Usage of the two actions is compatible with [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and requires only the standard GitHub Actions access token provided (with read-write permission). No GitHub bot account is needed.
 
@@ -13,7 +13,8 @@ Usage of the two actions is compatible with [GitHub Branch Protection](https://d
 * `GH_TOKEN`: (required) the GitHub access token to use. It is recommended to use the standard GitHub Actions access token (used in example).
 * `npm-version-type`: (required) the npm version type (`major`|`minor`|`patch`) being published.
 * `node-version`: (optional) the Node.js version to use for the action.
-* `release-branch`: (optional) custom branch to use for releasing the package instead of the main branch. 
+* `release-branch`: (optional) custom branch to use for releasing the package instead of the main branch.
+* `conventional-commits`: (optional) set to `true` to generate commit messages that follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) specification.
 
 ## Using the action
 
@@ -40,7 +41,7 @@ jobs:
   prepare:
     name: Prepare a new npm release
     runs-on: ubuntu-latest
-    steps:    
+    steps:
       - name: Check out the source code
         uses: actions/checkout@v3
 
