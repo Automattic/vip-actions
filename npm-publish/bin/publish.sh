@@ -114,7 +114,7 @@ echo "✅ Dry run looks good"
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
-gh release create "$LOCAL_VERSION" --generate-notes --target "$RELEASE_BRANCH"
+gh release create "${TAG_PREFIX:-}${LOCAL_VERSION}" --generate-notes --target "${RELEASE_BRANCH}"
 echo "✅ Released version $LOCAL_VERSION on GitHub and tagged"
 
 # Publish to NPM
