@@ -19,6 +19,9 @@ inputs:
   CONVENTIONAL_COMMITS:
     description: 'Follow the Conventional Commits specification when generating commit message.'
     default: 'false'
+  SKIP_BUMP_TO_DEV:
+    description: 'Skip bumping to dev version after publishing the release.'
+    default: 'false'
 
 runs:
   using: "composite"
@@ -51,3 +54,4 @@ runs:
         PR_ASSIGNEE: ${{ github.actor }}
         PROVENANCE: ${{ inputs.PROVENANCE }}
         CONVENTIONAL_COMMITS: ${{ inputs.CONVENTIONAL_COMMITS }}
+        SKIP_BUMP_TO_DEV: ${{ inputs.SKIP_BUMP_TO_DEV }}

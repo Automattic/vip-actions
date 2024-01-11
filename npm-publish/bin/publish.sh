@@ -21,7 +21,7 @@ set -o errexit # exit on error
 
 if [ "$PR_FILES_CHANGED" != "0" ] ; then
 	echo "❌ Unexpected files changed in PR ($PR_FILES_CHANGED)"
- 	exit 200
+	exit 200
 else
 	echo "✅ Determined only .json files are changed in PR"
 fi
@@ -129,7 +129,7 @@ npm publish ${OPTIONS}
 echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $LOCAL_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
-if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ]; then
+if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ] && [ "${SKIP_BUMP_TO_DEV:-}" != 'true' ]; then
 	echo_title "npm version (to next dev)"
 
 	NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
