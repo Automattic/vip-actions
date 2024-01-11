@@ -1,6 +1,6 @@
 {
   "name": "vip-actions",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "A collection of GitHub Actions meant to be reused by multiple VIP projects.",
   "main": "index.js",
   "scripts": {
