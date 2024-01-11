@@ -22,6 +22,9 @@ inputs:
   SKIP_BUMP_TO_DEV:
     description: 'Skip bumping to dev version after publishing the release.'
     default: 'false'
+  TAG_PREFIX:
+    description: 'Prefix for the git tag.'
+    default: ''
 
 runs:
   using: "composite"
@@ -55,3 +58,4 @@ runs:
         PROVENANCE: ${{ inputs.PROVENANCE }}
         CONVENTIONAL_COMMITS: ${{ inputs.CONVENTIONAL_COMMITS }}
         SKIP_BUMP_TO_DEV: ${{ inputs.SKIP_BUMP_TO_DEV }}
+        TAG_PREFIX: ${{ inputs.TAG_PREFIX }}
