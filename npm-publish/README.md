@@ -11,6 +11,7 @@ The `npm-prepare-release` action is meant to be called first and will create a p
 * `node-version`: (optional) the Node.js version to use for the Action.
 * `PROVENANCE`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
 * `CONVENTIONAL_COMMITS`: (optional) set to `true` to generate commit messages that follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) specification.
+* `SKIP_BUMP_TO_DEV`: (optional) set to `true` to skip bumping to dev version after publishing the release. Might be useful for projects using `nlm`.
 
 ## Using the action
 
