@@ -3,6 +3,7 @@
 DIR="$(dirname "$0")"
 
 (
+    set -e
     echo "version: 2"
     echo
     echo "updates:"
@@ -28,8 +29,9 @@ DIR="$(dirname "$0")"
     echo "      - '[Status] Needs Review'"
     echo
 
+    cd "${DIR}/../"
     # shellcheck disable=SC2044
-    for i in $(find "${DIR}/../" -type f -name "action.yml" -exec dirname {} \;); do
+    for i in $(find "." -type f -name "action.yml" -exec dirname {} \;); do
         echo "  - directory: '${i}'"
         echo "    package-ecosystem: 'github-actions'"
         echo "    schedule:"

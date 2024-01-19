@@ -22,70 +22,70 @@ updates:
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../expose-github-runtime'
+  - directory: './expose-github-runtime'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../npm-prepare-release'
+  - directory: './npm-prepare-release'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../npm-publish'
+  - directory: './npm-publish'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../junit-newrelic-processor'
+  - directory: './junit-newrelic-processor'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../dependabot-auto-merge'
+  - directory: './dependabot-auto-merge'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../stale'
+  - directory: './stale'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../changelog'
+  - directory: './changelog'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../npm-publish-prerelease'
+  - directory: './npm-publish-prerelease'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../nodejs-setup'
+  - directory: './nodejs-setup'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './.github/../dependaban'
+  - directory: './dependaban'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
