@@ -1,0 +1,94 @@
+version: 2
+
+updates:
+  - directory: '/'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: '/'
+    package-ecosystem: 'npm'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: '/junit-newrelic-processor'
+    package-ecosystem: 'docker'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../expose-github-runtime'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../npm-prepare-release'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../npm-publish'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../junit-newrelic-processor'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../dependabot-auto-merge'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../stale'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../changelog'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../npm-publish-prerelease'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../nodejs-setup'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './.github/../dependaban'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
