@@ -21,7 +21,7 @@ runs:
 
     - name: Set up Node.js environment using supplied Node.js version
       id: setup-node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
