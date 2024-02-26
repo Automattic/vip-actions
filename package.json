@@ -18,7 +18,7 @@
   "homepage": "https://github.com/Automattic/vip-actions#readme",
   "devDependencies": {
     "@automattic/eslint-plugin-wpvip": "0.3.0",
-    "eslint": "8.56.0",
+    "eslint": "8.57.0",
     "husky": "9.0.7",
     "lint-staged": "15.2.1",
     "prettier": "npm:wp-prettier@^2.6.2"
