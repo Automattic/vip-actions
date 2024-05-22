@@ -1,59 +1,62 @@
-name: Deploy action
+name: 'Custom Deployment'
+description: 'Deploy action for VIP applications'
+inputs:
+  WPVIP_DEPLOY_TOKEN:
+    description: 'The deploy token for WPVIP'
+    required: true
+    default: ''
+  ENVIRONMENT_SLUG:
+    description: 'The environment slug for deployment'
+    required: true
+    default: ''
+  RELEASE_NAME:
+    description: 'The name of the release'
+    required: true
+    default: ''
 
-on:
-  workflow_dispatch:
-  release:
-    types: [published]
+runs:
+  using: 'composite'
+  steps:
+    - name: "Check repo configuration"
+      run: |
+        if [ -n "${{ inputs.WPVIP_DEPLOY_TOKEN }}" ]; then
+          echo "Repository has the secrets set."
+        else
+          echo "WPVIP_DEPLOY_TOKEN is not configured."
+          echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
+          exit 1
+        fi
+        if [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
+          echo "ENVIRONMENT_SLUG is not set."
+          exit 1
+        fi
 
-jobs:
-  pack-and-deploy:
-    runs-on: ubuntu-latest
-    environment: Production
-    steps:
-      - name: "Check repo configuration"
-        run: |
-          if [ -n "$WPVIP_DEPLOY_TOKEN" ]; then
-            echo "Repository has the secrets set."
-          else
-            echo "WPVIP_DEPLOY_TOKEN is not configured."
-            echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
-            exit 1
-          fi
-          if [ -z "$ENVIRONMENT_SLUG" ]; then
-            echo "ENVIRONMENT_SLUG is not set."
-            exit 1
-          fi
-        env:
-          WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
-          ENVIRONMENT_SLUG: ${{ vars.ENVIRONMENT_SLUG }}
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Setup Node
+      uses: actions/setup-node@v4.0.2
+      with:
+        node-version: "v20.11.1"
 
-      - name: Setup Node
-        uses: actions/setup-node@v4.0.2
-        with:
-          node-version: "v20.11.1"
+    - name: Install VIP CLI
+      run: |
+        npm install -g @automattic/vip
 
-      - name: Install VIP CLI
-        run: |
-          npm install -g @automattic/vip
+    - uses: php-actions/composer@v6
+      with:
+        php_version: "8.2"
+        dev: "no"
 
-      - uses: php-actions/composer@v6
-        with:
-          #vip ${{ vars.ENVIRONMENT_SLUG }} config software get --format=json | jq -c '.[] | select(.slug | contains("php"))' | jq .version
-          php_version: "8.2"
-          dev: "no"
+    - name: Compress the repo
+      run: |
+        mkdir wrap_folder
+        shopt -s extglob
+        cp -r !(wrap_folder) wrap_folder/
+        zip -r repo.zip wrap_folder
 
-      - name: Compress the repo
-        run: |
-          mkdir wrap_folder
-          shopt -s extglob
-          cp -r !(wrap_folder) wrap_folder/
-          zip -r repo.zip wrap_folder
-
-      - name: Deploy via VIP-CLI
-        run: |
-          vip app deploy ${{ vars.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ github.event.release.name }}" --force
-        env:
-          WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
+    - name: Deploy via VIP-CLI
+      run: |
+        vip app deploy ${{ inputs.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
+      env:
+        WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
