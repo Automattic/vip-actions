@@ -1,0 +1,59 @@
+name: Deploy action
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  pack-and-deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: "Check repo configuration"
+        run: |
+          if [ -n "$WPVIP_DEPLOY_TOKEN" ]; then
+            echo "Repository has the secrets set."
+          else
+            echo "WPVIP_DEPLOY_TOKEN is not configured."
+            echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
+            exit 1
+          fi
+          if [ -z "$ENVIRONMENT_SLUG" ]; then
+            echo "ENVIRONMENT_SLUG is not set."
+            exit 1
+          fi
+        env:
+          WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
+          ENVIRONMENT_SLUG: ${{ vars.ENVIRONMENT_SLUG }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: "v20.11.1"
+
+      - name: Install VIP CLI
+        run: |
+          npm install -g @automattic/vip
+
+      - uses: php-actions/composer@v6
+        with:
+          #vip ${{ vars.ENVIRONMENT_SLUG }} config software get --format=json | jq -c '.[] | select(.slug | contains("php"))' | jq .version
+          php_version: "8.2"
+          dev: "no"
+
+      - name: Compress the repo
+        run: |
+          mkdir wrap_folder
+          shopt -s extglob
+          cp -r !(wrap_folder) wrap_folder/
+          zip -r repo.zip wrap_folder
+
+      - name: Deploy via VIP-CLI
+        run: |
+          vip app deploy ${{ vars.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ github.event.release.name }}" --force
+        env:
+          WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
