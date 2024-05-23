@@ -57,7 +57,7 @@ runs:
         mkdir wrap_folder
         shopt -s extglob
         cp -r !(wrap_folder) wrap_folder/
-        zip -r repo.zip wrap_folde
+        zip -r repo.zip wrap_folder
       shell: bash
 
     - name: Deploy via VIP-CLI
