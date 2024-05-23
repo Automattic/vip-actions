@@ -4,15 +4,16 @@ inputs:
   WPVIP_DEPLOY_TOKEN:
     description: 'The deploy token for WPVIP'
     required: true
-    default: ''
   ENVIRONMENT_SLUG:
     description: 'The environment slug for deployment'
     required: true
-    default: ''
   RELEASE_NAME:
     description: 'The name of the release'
     required: true
-    default: ''
+  PHP_VERSION:
+    description: 'Specify the PHP version to be used with composer. Defaults to 8.2'
+    required: false
+    default: '8.2'
 
 runs:
   using: 'composite'
@@ -45,7 +46,7 @@ runs:
 
     - uses: php-actions/composer@v6
       with:
-        php_version: "8.2"
+        php_version: ${{ inputs.PHP_VERSION }}
         dev: "no"
 
     - name: Compress the repo

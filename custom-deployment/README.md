@@ -29,5 +29,6 @@ jobs:
           WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
           ENVIRONMENT_SLUG: ${{ vars.ENVIRONMENT_SLUG }}
           RELEASE_NAME: ${{ github.event.release.name }}
+          PHP_VERSION: '8.2'
 
 ```
