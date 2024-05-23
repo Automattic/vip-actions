@@ -1,0 +1,68 @@
+name: 'Custom Deployment'
+description: 'Deploy action for VIP applications'
+inputs:
+  WPVIP_DEPLOY_TOKEN:
+    description: 'The deploy token for WPVIP'
+    required: true
+  ENVIRONMENT_SLUG:
+    description: 'The environment slug for deployment'
+    required: true
+  RELEASE_NAME:
+    description: 'The name of the release'
+    required: true
+  PHP_VERSION:
+    description: 'Specify the PHP version to be used with composer. Defaults to 8.2'
+    required: false
+    default: '8.2'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: "Check repo configuration"
+      run: |
+        if [ -n "${{ inputs.WPVIP_DEPLOY_TOKEN }}" ]; then
+          echo "Repository has the secrets set."
+        else
+          echo "WPVIP_DEPLOY_TOKEN is not configured."
+          echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
+          exit 1
+        fi
+        if [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
+          echo "ENVIRONMENT_SLUG is not set."
+          exit 1
+        fi
+      shell: bash
+
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node
+      uses: actions/setup-node@v4.0.2
+      with:
+        node-version: "v20.11.1"
+
+    - name: Install VIP CLI
+      run: |
+        npm install -g @automattic/vip
+      shell: bash
+
+    - uses: php-actions/composer@v6
+      with:
+        php_version: ${{ inputs.PHP_VERSION }}
+        dev: "no"
+
+    - name: Compress the repo
+      run: |
+        mkdir wrap_folder
+        shopt -s extglob
+        cp -r !(wrap_folder) wrap_folder/
+        zip -r repo.zip wrap_folder
+      shell: bash
+
+    - name: Deploy via VIP-CLI
+      run: |
+        vip app deploy ${{ inputs.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
+      shell: bash
+      env:
+        WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
