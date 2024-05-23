@@ -31,6 +31,8 @@ runs:
           echo "ENVIRONMENT_SLUG is not set."
           exit 1
         fi
+      shell: bash
+
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -43,6 +45,7 @@ runs:
     - name: Install VIP CLI
       run: |
         npm install -g @automattic/vip
+      shell: bash
 
     - uses: php-actions/composer@v6
       with:
@@ -54,10 +57,12 @@ runs:
         mkdir wrap_folder
         shopt -s extglob
         cp -r !(wrap_folder) wrap_folder/
-        zip -r repo.zip wrap_folder
+        zip -r repo.zip wrap_folde
+      shell: bash
 
     - name: Deploy via VIP-CLI
       run: |
         vip app deploy ${{ inputs.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
+      shell: bash
       env:
         WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
