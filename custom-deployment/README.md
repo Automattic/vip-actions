@@ -6,7 +6,7 @@ Note: Custom Deployments is currently in close beta and not yet available for th
 
 ## Inputs
 
-* `WPVIP_DEPLOY_TOKEN`: (required) The deployment token you can optain on the "repository" page for your applications.
+* `WPVIP_DEPLOY_TOKEN`: (required) The deployment token you can obtain on the "repository" page for your applications.
 * `ENVIRONMENT_SLUG`: (required) The environment slug used in the CLI to specify which application environment you're referencing.
 * `RELEASE_NAME`: (required) The name of the release, typically sourced from the GitHub event data.
 
@@ -29,6 +29,5 @@ jobs:
           WPVIP_DEPLOY_TOKEN: ${{ secrets.WPVIP_DEPLOY_TOKEN }}
           ENVIRONMENT_SLUG: ${{ vars.ENVIRONMENT_SLUG }}
           RELEASE_NAME: ${{ github.event.release.name }}
-          PHP_VERSION: '8.2'
 
 ```

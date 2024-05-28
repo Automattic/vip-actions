@@ -10,10 +10,6 @@ inputs:
   RELEASE_NAME:
     description: 'The name of the release'
     required: true
-  PHP_VERSION:
-    description: 'Specify the PHP version to be used with composer. Defaults to 8.2'
-    required: false
-    default: '8.2'
 
 runs:
   using: 'composite'
@@ -46,11 +42,6 @@ runs:
       run: |
         npm install -g @automattic/vip
       shell: bash
-
-    - uses: php-actions/composer@v6
-      with:
-        php_version: ${{ inputs.PHP_VERSION }}
-        dev: "no"
 
     - name: Compress the repo
       run: |
