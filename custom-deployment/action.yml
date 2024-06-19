@@ -6,7 +6,8 @@ inputs:
     required: true
   ENVIRONMENT_TYPE:
     description: 'The environment type for deployment'
-    required: true
+  ENVIRONMENT_SLUG:
+    description: 'Backwards compatibility for pre-release versions'
   RELEASE_NAME:
     description: 'The name of the release'
     required: true
@@ -23,10 +24,19 @@ runs:
           echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
           exit 1
         fi
-        if [ -z "${{ inputs.ENVIRONMENT_TYPE }}" ]; then
-          echo "ENVIRONMENT_TYPE is not set."
+        if [ -z "${{ inputs.ENVIRONMENT_TYPE }}" ] && [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
+          echo "Either ENVIRONMENT_TYPE or ENVIRONMENT_SLUG must be set."
           exit 1
         fi
+
+        if [ -n "${{ inputs.ENVIRONMENT_TYPE }}" ]; then
+          DEPLOY_ENVIRONMENT="${{ inputs.ENVIRONMENT_TYPE }}"
+        else
+          DEPLOY_ENVIRONMENT="${{ inputs.ENVIRONMENT_SLUG }}"
+        fi
+        
+        echo "DEPLOY_ENVIRONMENT=${DEPLOY_ENVIRONMENT}" >> $GITHUB_ENV
+        
       shell: bash
 
 
@@ -53,7 +63,8 @@ runs:
 
     - name: Deploy via VIP-CLI
       run: |
-        vip app deploy ${{ inputs.ENVIRONMENT_TYPE }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
+        vip app deploy ${{ env.DEPLOY_ENVIRONMENT }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
       shell: bash
       env:
         WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
+
