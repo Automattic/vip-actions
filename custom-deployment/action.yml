@@ -4,8 +4,8 @@ inputs:
   WPVIP_DEPLOY_TOKEN:
     description: 'The deploy token for WPVIP'
     required: true
-  ENVIRONMENT_SLUG:
-    description: 'The environment slug for deployment'
+  ENVIRONMENT_TYPE:
+    description: 'The environment type for deployment'
     required: true
   RELEASE_NAME:
     description: 'The name of the release'
@@ -23,8 +23,8 @@ runs:
           echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
           exit 1
         fi
-        if [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
-          echo "ENVIRONMENT_SLUG is not set."
+        if [ -z "${{ inputs.ENVIRONMENT_TYPE }}" ]; then
+          echo "ENVIRONMENT_TYPE is not set."
           exit 1
         fi
       shell: bash
@@ -53,7 +53,7 @@ runs:
 
     - name: Deploy via VIP-CLI
       run: |
-        vip app deploy ${{ inputs.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
+        vip app deploy ${{ inputs.ENVIRONMENT_TYPE }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
       shell: bash
       env:
         WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
