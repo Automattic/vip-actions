@@ -24,6 +24,7 @@ runs:
           echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
           exit 1
         fi
+        
         if [ -z "${{ inputs.ENVIRONMENT_TYPE }}" ] && [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
           echo "Either ENVIRONMENT_TYPE or ENVIRONMENT_SLUG must be set."
           exit 1
