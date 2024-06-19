@@ -67,4 +67,3 @@ runs:
       shell: bash
       env:
         WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
-
