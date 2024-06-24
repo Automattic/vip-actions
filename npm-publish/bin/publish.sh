@@ -133,12 +133,6 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ] && [ "${SKIP_BUMP_TO_DEV:-}" != 'tru
 	echo_title "npm version (to next dev)"
 
 	NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
-	if [ "$NPM_VERSION_TYPE" == "major" ]; then
-		NEXT_LOCAL_DEV_VERSION_TYPE="preminor"
-	elif [ "$NPM_VERSION_TYPE" == "minor" ]; then
-		NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
-	fi
-
 	NEXT_LOCAL_DEV_VERSION=$( npm version --no-git-tag-version --preid "dev" "$NEXT_LOCAL_DEV_VERSION_TYPE" )
 	echo "✅ Determined next local dev version: $NEXT_LOCAL_DEV_VERSION"
 
