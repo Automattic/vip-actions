@@ -4,9 +4,10 @@ inputs:
   WPVIP_DEPLOY_TOKEN:
     description: 'The deploy token for WPVIP'
     required: true
+  ENVIRONMENT_ALIAS:
+    description: 'The environment alias for deployment. Format should be "@APPID.ENVIRONMENT"'
   ENVIRONMENT_SLUG:
-    description: 'The environment slug for deployment'
-    required: true
+    description: 'Backwards compatibility for pre-release versions'
   RELEASE_NAME:
     description: 'The name of the release'
     required: true
@@ -27,10 +28,20 @@ runs:
           echo "Save the deploy token as WPVIP_DEPLOY_TOKEN."
           exit 1
         fi
-        if [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
-          echo "ENVIRONMENT_SLUG is not set."
+        
+        if [ -z "${{ inputs.ENVIRONMENT_ALIAS }}" ] && [ -z "${{ inputs.ENVIRONMENT_SLUG }}" ]; then
+          echo "Either ENVIRONMENT_ALIAS or ENVIRONMENT_SLUG must be set."
           exit 1
         fi
+
+        if [ -n "${{ inputs.ENVIRONMENT_ALIAS }}" ]; then
+          DEPLOY_ENVIRONMENT="${{ inputs.ENVIRONMENT_ALIAS }}"
+        else
+          DEPLOY_ENVIRONMENT="${{ inputs.ENVIRONMENT_SLUG }}"
+        fi
+        
+        echo "DEPLOY_ENVIRONMENT=${DEPLOY_ENVIRONMENT}" >> $GITHUB_ENV
+        
       shell: bash
 
     - name: Checkout Repository
@@ -57,7 +68,7 @@ runs:
 
     - name: Deploy via VIP-CLI
       run: |
-        vip app deploy ${{ inputs.ENVIRONMENT_SLUG }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
+        vip app deploy ${{ env.DEPLOY_ENVIRONMENT }} ./repo.zip --message "${{ inputs.RELEASE_NAME }}" --force
       shell: bash
       env:
         WPVIP_DEPLOY_TOKEN: ${{ inputs.WPVIP_DEPLOY_TOKEN }}
