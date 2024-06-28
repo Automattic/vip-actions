@@ -1,0 +1,19 @@
+---
+name: Swagger validation
+description: This action performs a validation of a Swagger specification. Requires API to be running.
+
+inputs:
+  swagger-json-url:
+    description: 'Local URL of Swagger Json'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      run: npm install @readme/openapi-parser
+      shell: bash
+
+    - name: Validate Swagger
+      run: node ${{ github.action_path }}/bin/swagger-validator.js ${{ inputs.swagger-json-url }}
+      shell: bash
