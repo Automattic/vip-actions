@@ -11,10 +11,10 @@ runs:
   using: composite
   steps:
     - name: Install dependencies
-      shell: bash
       run: |
-      cd ${{ github.action_path }}
-      npm install @readme/openapi-parser
+        cd ${{ github.action_path }}
+        npm install @readme/openapi-parser
+      shell: bash
 
     - name: Validate Swagger
       run: node ${{ github.action_path }}/bin/swagger-validator.js ${{ inputs.swagger-json-url }}
