@@ -1,0 +1,30 @@
+{
+  "name": "sticky-pr-comment",
+  "version": "2.9.0",
+  "description": "Create a comment on pull request or update the existing one",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Automattic/vip-actions.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "pull-request"
+  ],
+  "author": "marocchino",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@actions/glob": "^0.4.0",
+    "@octokit/graphql-schema": "^14.52.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.14",
+    "typescript": "^5.3.3"
+  }
+}
