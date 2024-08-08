@@ -1,0 +1,22 @@
+name: 'Markdown coverage report'
+description: 'GitHub action for creating markdown coverage report from Istanbul text report'
+author: 'FingerprintJS'
+branding:
+  icon: 'check-square'
+  color: 'green'
+inputs:
+  textReportPath:
+    required: false
+    description: 'path to the coverage report in Istanbul text format'
+    default: './coverage/coverage.txt'
+  srcBasePath:
+    required: false
+    description: 'base path for the source folder'
+    default: './src'
+outputs:
+  markdownReport:
+    description: 'Coverage report in markdown'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
