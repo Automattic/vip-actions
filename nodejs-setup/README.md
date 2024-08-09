@@ -4,10 +4,12 @@ This action (composite workflow) reduces boilerplate in your action by performin
 
 ## Inputs
 
+One of `node-version` or `node-version-file` is required. Do not provide both.
+
+- `fetch-depth`: Depth for fetching commits (optional).
 - `node-version-file`: Set to the file containing your preferred Node.js version (e.g., `.nvmrc` or `.node-version`).
 - `node-version`: Set to a valid semver referencing your preferred Node.js version (e.g., `18.13`).
-
-One of `node-version` or `node-version-file` is required. Do not provide both.
+- `ref`: The branch, tag, or SHA to checkout (optional, defaults to commit that triggered the workflow).
 
 ## Example
 
@@ -49,4 +51,3 @@ jobs:
       - name: Run linter
         run: npm run lint
 ```
-

@@ -1,14 +1,19 @@
 ---
-
 name: Node.js setup and install
 description: This composite action performs Node.js setup and install with good caching defaults
 
 inputs:
+  fetch-depth:
+    description: 'Depth for fetching commits'
+    required: false
   node-version:
-    description: "Node.js version (e.g., 18.13.0) for set up"
+    description: 'Node.js version (e.g., 18.13.0) for set up'
     required: false
   node-version-file:
-    description: "Node.js version file (e.g., .nvmrc) for set up"
+    description: 'Node.js version file (e.g., .nvmrc) for set up'
+    required: false
+  ref:
+    description: 'The branch, tag, or SHA to checkout'
     required: false
 
 runs:
@@ -17,7 +22,8 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        persist-credentials: false
+        fetch-depth: ${{ inputs.fetch-depth }}
+        ref: ${{ inputs.ref }}
 
     - name: Set up Node.js environment using supplied Node.js version
       id: setup-node
@@ -33,6 +39,13 @@ runs:
       with:
         path: node_modules
         key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
+
+    - name: Cache Jest artifacts
+      uses: actions/cache@v4
+      id: cache-jest
+      with:
+        path: .cache/jest
+        key: ${{ runner.os }}-node-jest-${{ hashFiles('**/*.js', '**/*.ts', 'package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
