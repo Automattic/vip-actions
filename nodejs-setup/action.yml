@@ -38,7 +38,7 @@ runs:
       id: cache-node-modules
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-${{ inputs.node-version || inputs.node-version }}-node-modules-cache-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
+        key: ${{ runner.os }}-node-${{ inputs.node-version || inputs.node-version-file }}-node-modules-cache-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: Cache Jest artifacts
       uses: actions/cache@v4
