@@ -34,21 +34,13 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
-        cache: npm
 
     - name: Cache dependencies
       uses: actions/cache@v4
       id: cache-node-modules
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-modules-cache-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
-
-    - name: Cache Jest artifacts
-      uses: actions/cache@v4
-      id: cache-jest
-      with:
-        path: .cache/jest
-        key: ${{ runner.os }}-node-jest-${{ hashFiles('**/*.js', '**/*.ts', 'package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
+        key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
