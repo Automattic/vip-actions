@@ -33,17 +33,12 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
         cache: npm
 
-    - name: Get Node.js major version
-      id: node-version
-      run: echo "version=$(node -v | cut -d. -f1 | tr -d 'v')" >> $GITHUB_OUTPUT
-      shell: bash
-
     - name: Cache dependencies
       uses: actions/cache@v4
       id: cache-node-modules
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-${{ steps.node-version.outputs.version }}-node-modules-cache-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
+        key: ${{ runner.os }}-node-${{ inputs.node-version || hashFiles(inputs.node-version-file) }}-node-modules-cache-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: Cache Jest artifacts
       uses: actions/cache@v4
