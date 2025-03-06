@@ -51,4 +51,21 @@ jobs:
 
       - name: Run linter
         run: npm run lint
+
+  lint-other-app:
+    name: Other App: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup and install
+        uses: Automattic/vip-actions/nodejs-setup@trunk
+        with:
+          node-version-file: other-app/.nvmrc
+          working-directory: other-app
+
+      - name: Run linter 
+        working-directory: ./other-app
+        run: npm run lint
+
 ```
