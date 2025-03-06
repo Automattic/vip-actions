@@ -35,7 +35,7 @@ runs:
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
-        sparse-checkout: ${{ inputs.sparse-checkout }}
+        sparse-checkout: ${{ inputs.working-directory != '.' && inputs.working-directory || null }}
         sparse-checkout-cone-mode: false
 
     - name: LS
