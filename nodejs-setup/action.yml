@@ -18,6 +18,10 @@ inputs:
   ignore-scripts:
     description: 'Ignore scripts when installing dependencies'
     required: false
+  sparse-checkout:
+    description: 'Do a sparse checkout on given patterns'
+    required: false
+    default: null
 
 runs:
   using: composite
@@ -27,6 +31,7 @@ runs:
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
+        sparse-checkout: ${{ inputs.sparse-checkout }}
 
     - name: Set up Node.js environment using supplied Node.js version
       id: setup-node
