@@ -49,6 +49,7 @@ runs:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: npm
+        cache-dependency-path: ${{ inputs.working-directory }}
 
     - name: LS2
       shell: bash
@@ -59,7 +60,6 @@ runs:
       id: cache-node-modules
       with:
         path: ${{ inputs.working-directory }}/node_modules
-        cache-dependency-path: ${{ inputs.working-directory }}
         key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: LS3
