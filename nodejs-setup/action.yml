@@ -18,10 +18,6 @@ inputs:
   ignore-scripts:
     description: 'Ignore scripts when installing dependencies'
     required: false
-  sparse-checkout:
-    description: 'Do a sparse checkout on given patterns'
-    required: false
-    default: null
   working-directory:
     description: 'Working directory when running NPM install'
     required: false
