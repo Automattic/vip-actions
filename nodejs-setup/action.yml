@@ -22,6 +22,10 @@ inputs:
     description: 'Do a sparse checkout on given patterns'
     required: false
     default: null
+  working-directory:
+    description: 'Working directory when running NPM install'
+    required: false
+    default: './'
 
 runs:
   using: composite
@@ -51,5 +55,5 @@ runs:
 
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: npm ci ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }}
+      run: cd ${{ inputs.working-directory }} && npm ci ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }}
       shell: bash
