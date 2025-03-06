@@ -32,7 +32,7 @@ runs:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
         sparse-checkout: ${{ inputs.working-directory != '.' && inputs.working-directory || null }}
-        sparse-checkout-cone-mode: false
+        sparse-checkout-cone-mode: false # Only used if sparse-checkout is non-null.
 
     - name: LS
       shell: bash
@@ -45,7 +45,7 @@ runs:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: npm
-        cache-dependency-path: ${{ inputs.working-directory }}
+        cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
     - name: LS2
       shell: bash
