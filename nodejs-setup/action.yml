@@ -34,10 +34,6 @@ runs:
         sparse-checkout: ${{ inputs.working-directory != '.' && inputs.working-directory || null }}
         sparse-checkout-cone-mode: false # Only used if sparse-checkout is non-null.
 
-    - name: LS
-      shell: bash
-      run: ls -al ; ls -al .. ; ls -al api-wpvip-com
-
     - name: Set up Node.js environment using supplied Node.js version
       id: setup-node
       uses: actions/setup-node@v4
@@ -47,20 +43,12 @@ runs:
         cache: npm
         cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
-    - name: LS2
-      shell: bash
-      run: ls -al ; ls -al .. ; ls -al api-wpvip-com
-
     - name: Cache dependencies
       uses: actions/cache@v4
       id: cache-node-modules
       with:
         path: ${{ inputs.working-directory }}/node_modules
         key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
-
-    - name: LS3
-      shell: bash
-      run: ls -al ; ls -al .. ; ls -al api-wpvip-com
 
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
