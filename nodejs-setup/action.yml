@@ -25,7 +25,7 @@ inputs:
   working-directory:
     description: 'Working directory when running NPM install'
     required: false
-    default: .
+    default: '.'
 
 runs:
   using: composite
