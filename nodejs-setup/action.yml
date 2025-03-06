@@ -39,6 +39,7 @@ runs:
         sparse-checkout-cone-mode: false
 
     - name: LS
+      shell: bash
       run: ls -al ; ls -al ..
 
     - name: Set up Node.js environment using supplied Node.js version
