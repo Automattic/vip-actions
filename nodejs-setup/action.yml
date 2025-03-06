@@ -19,7 +19,7 @@ inputs:
     description: 'Ignore scripts when installing dependencies'
     required: false
   working-directory:
-    description: 'Working directory when running NPM install'
+    description: 'Effectively focuses checkout to this directory and uses as a working directory when running NPM install'
     required: false
     default: '.'
 
