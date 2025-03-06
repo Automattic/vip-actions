@@ -25,7 +25,7 @@ inputs:
   working-directory:
     description: 'Working directory when running NPM install'
     required: false
-    default: './'
+    default: .
 
 runs:
   using: composite
@@ -53,7 +53,7 @@ runs:
       uses: actions/cache@v4
       id: cache-node-modules
       with:
-        path: node_modules
+        path: ${{ inputs.working-directory }}/node_modules
         key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: Install dependencies
