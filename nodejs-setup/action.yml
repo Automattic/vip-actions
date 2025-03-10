@@ -18,6 +18,10 @@ inputs:
   ignore-scripts:
     description: 'Ignore scripts when installing dependencies'
     required: false
+  working-directory:
+    description: 'Effectively limits checkout to this directory and uses as a working directory when running NPM install'
+    required: false
+    default: '.'
 
 runs:
   using: composite
@@ -27,6 +31,8 @@ runs:
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
+        sparse-checkout: ${{ inputs.working-directory != '.' && inputs.working-directory || null }}
+        sparse-checkout-cone-mode: false # Only used if sparse-checkout is non-null.
 
     - name: Set up Node.js environment using supplied Node.js version
       id: setup-node
@@ -35,15 +41,16 @@ runs:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: npm
+        cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
     - name: Cache dependencies
       uses: actions/cache@v4
       id: cache-node-modules
       with:
-        path: node_modules
+        path: ${{ inputs.working-directory }}/node_modules
         key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
 
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: npm ci ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }}
+      run: cd ${{ inputs.working-directory }}/ && npm ci ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }}
       shell: bash

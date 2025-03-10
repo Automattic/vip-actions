@@ -10,6 +10,7 @@ One of `node-version` or `node-version-file` is required. Do not provide both.
 - `node-version-file`: Set to the file containing your preferred Node.js version (e.g., `.nvmrc` or `.node-version`).
 - `node-version`: Set to a valid semver referencing your preferred Node.js version (e.g., `18.13`).
 - `ref`: The branch, tag, or SHA to checkout (optional, defaults to commit that triggered the workflow).
+- `working-directory`: Effectively limits checkout to this directory and uses as a working directory when running NPM install. Useful if you have a Node application inside a subdirectory and you only want that checked out and dependencies for it installed.  Do not prepend directory value with `./`. Optional parameter.
 
 ## Example
 
@@ -50,4 +51,21 @@ jobs:
 
       - name: Run linter
         run: npm run lint
+
+  lint-other-app:
+    name: Other App: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup and install
+        uses: Automattic/vip-actions/nodejs-setup@trunk
+        with:
+          node-version-file: other-app/.nvmrc
+          working-directory: other-app
+
+      - name: Run linter 
+        working-directory: ./other-app
+        run: npm run lint
+
 ```
