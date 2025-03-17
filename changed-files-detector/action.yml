@@ -17,15 +17,19 @@ inputs:
 outputs:
   any_changed:
     description: 'Boolean indicating if any files matching the patterns have changed'
+    value: ${{ steps.detect-files.outputs.any_changed }}
   all_changed_files:
     description: 'List of all changed files'
+    value: ${{ steps.detect-files.outputs.all_changed_files }}
   should_skip:
     description: 'Boolean indicating if CI should be skipped based on the mode and changed files'
+    value: ${{ steps.detect-files.outputs.should_skip }}
 
 runs:
   using: "composite"
   steps:
     - name: Detect changed files
+      id: detect-files
       shell: bash
       run: |
         set -eo pipefail
