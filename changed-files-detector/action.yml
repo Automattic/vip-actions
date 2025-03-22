@@ -1,0 +1,126 @@
+name: 'Changed Files Detector'
+description: 'Detect changed files in a repository and determine whether to proceed with CI based on allow or deny patterns'
+
+inputs:
+  mode:
+    description: 'Mode of operation: allow (skip CI if only these files changed) or deny (fail CI if any of these files changed)'
+    required: false
+    default: 'allow'
+  files:
+    description: 'Comma-separated list of file patterns to allow or deny'
+    required: true
+  fetch-depth:
+    description: 'Number of commits to fetch'
+    required: false
+    default: '0'
+
+outputs:
+  any_changed:
+    description: 'Boolean indicating if any files matching the patterns have changed'
+    value: ${{ steps.detect-files.outputs.any_changed }}
+  all_changed_files:
+    description: 'List of all changed files'
+    value: ${{ steps.detect-files.outputs.all_changed_files }}
+  should_skip:
+    description: 'Boolean indicating if CI should be skipped based on the mode and changed files'
+    value: ${{ steps.detect-files.outputs.should_skip }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Detect changed files
+      id: detect-files
+      shell: bash
+      run: |
+        set -eo pipefail
+
+        # Function to check if a file matches any pattern
+        matches_any_pattern() {
+          local file="$1"
+          local patterns="$2"
+          local IFS=','
+
+          for pattern in $patterns; do
+            [[ -z "$pattern" ]] && continue
+            if [[ "$file" == $pattern ]]; then
+              return 0  # True, file matches pattern
+            fi
+          done
+
+          return 1  # False, file doesn't match any pattern
+        }
+
+        # Validate inputs
+        MODE="${{ inputs.mode }}"
+        FILES="${{ inputs.files }}"
+        FETCH_DEPTH="${{ inputs.fetch-depth }}"
+
+        if [[ "$MODE" != "allow" && "$MODE" != "deny" ]]; then
+          echo "::error::Invalid mode: $MODE. Must be 'allow' or 'deny'."
+          exit 1
+        fi
+
+        echo "Mode: $MODE"
+        echo "File patterns: $FILES"
+
+        # Ensure we have the git history if needed
+        [[ "$FETCH_DEPTH" != "0" ]] && git fetch --depth=$FETCH_DEPTH
+
+        # Get base and head SHAs
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          BASE_SHA=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+        else
+          BASE_SHA=$(git rev-parse HEAD~1)
+        fi
+        HEAD_SHA=${{ github.sha }}
+
+        # Get all changed files
+        ALL_CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA | tr '\n' ',')
+        ALL_CHANGED_FILES="${ALL_CHANGED_FILES%,}" # Remove trailing comma
+
+        echo "all_changed_files=${ALL_CHANGED_FILES}" >> $GITHUB_OUTPUT
+        echo "All changed files: $ALL_CHANGED_FILES"
+
+        # Handle case with no changed files
+        if [[ -z "$ALL_CHANGED_FILES" ]]; then
+          echo "No files changed"
+          echo "any_changed=false" >> $GITHUB_OUTPUT
+          echo "should_skip=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Process changed files
+        ANY_MATCHED=false
+        ALL_MATCH=true
+
+        IFS=',' read -ra CHANGED_FILES <<< "$ALL_CHANGED_FILES"
+        for file in "${CHANGED_FILES[@]}"; do
+          [[ -z "$file" ]] && continue
+
+          if matches_any_pattern "$file" "$FILES"; then
+            ANY_MATCHED=true
+            echo "File '$file' matches a pattern"
+          else
+            ALL_MATCH=false
+            echo "File '$file' doesn't match any pattern"
+          fi
+        done
+
+        echo "any_changed=${ANY_MATCHED}" >> $GITHUB_OUTPUT
+
+        # Determine if CI should be skipped
+        SHOULD_SKIP="false"
+
+        if [[ "$MODE" == "allow" && "$ALL_MATCH" == "true" ]]; then
+          SHOULD_SKIP="true"
+          echo "Only allowed files changed, CI will be skipped"
+        elif [[ "$MODE" == "deny" && "$ANY_MATCHED" == "false" ]]; then
+          SHOULD_SKIP="true"
+          echo "No denied files changed, CI will be skipped"
+        elif [[ "$MODE" == "allow" ]]; then
+          echo "Non-allowed files changed, CI will proceed"
+        else
+          echo "Denied files changed, CI will proceed and fail"
+        fi
+
+        echo "should_skip=${SHOULD_SKIP}" >> $GITHUB_OUTPUT
