@@ -43,6 +43,14 @@ runs:
         cache: npm
         cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
+    - name: Debug
+      shell: bash
+      run: echo ${{ format('{0}/{1}', inputs.working-directory, 'package.json' ) }}
+
+    - name: Debug2
+      shell: bash
+      run: md5sum ${{ format('{0}/{1}', inputs.working-directory, 'package.json' ) }}
+      
     - name: Cache dependencies
       uses: actions/cache@v4
       id: cache-node-modules
