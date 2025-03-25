@@ -41,7 +41,7 @@ runs:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: npm
-        cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
+        cache-dependency-path: ${{ format( '{0}/{1}', inputs.working-directory, 'package*.json' ) }}
 
     - name: Debug
       shell: bash
