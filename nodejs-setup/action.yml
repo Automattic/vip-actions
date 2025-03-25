@@ -44,6 +44,7 @@ runs:
         cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
     - name: Testing joining strings
+      shell: bash
       run: echo ${{ hashFiles( join( inputs.working-directory, '/package.json') ) }}
 
     - name: Cache dependencies
