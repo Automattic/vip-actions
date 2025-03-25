@@ -43,13 +43,6 @@ runs:
         cache: npm
         cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      id: cache-node-modules
-      with:
-        path: ${{ inputs.working-directory }}/node_modules
-        key: ${{ runner.os }}-node-${{ steps.setup-node.outputs.node-version }}-${{ inputs.working-directory }}-${{ hashFiles('package.json', 'package-lock.json', 'npm-shrinkwrap.json') }}
-
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: cd ${{ inputs.working-directory }}/ && npm ci ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }}
