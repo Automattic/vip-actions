@@ -43,14 +43,6 @@ runs:
         cache: npm
         cache-dependency-path: ${{ inputs.working-directory != '.' && inputs.working-directory || '' }}
 
-    - name: Testing joining strings
-      shell: bash
-      run: echo ${{ format('{0}/{1}', inputs.working-directory, 'package.json' ) }}
-
-    - name: Testing joining strings plus hashing
-      shell: bash
-      run: echo ${{ hashFiles( format('{0}/{1}', inputs.working-directory, 'package.json' ) ) }}
-
     - name: Cache dependencies
       uses: actions/cache@v4
       id: cache-node-modules
