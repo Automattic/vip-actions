@@ -45,7 +45,7 @@ runs:
 
     - name: Testing joining strings
       shell: bash
-      run: echo ${{ join( inputs.working-directory, '/package.json') }}
+      run: echo ${{ inputs.working-directory }}${{ '/package.json') }}
 
     - name: Cache dependencies
       uses: actions/cache@v4
