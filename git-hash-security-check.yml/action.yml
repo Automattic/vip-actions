@@ -94,7 +94,7 @@ runs:
           for service in github gitlab bitbucket; do
             if grep -q "$service:" "$file"; then
               echo "Found $service: dependencies:"
-              grep "$service:" "$file" | while IFS= read -r line; do
+              while IFS= read -r line; do
                 echo "  Checking: $line"
                 if [[ $line =~ $service:[^#]*#([^\",:]+) ]]; then
                   ref="${BASH_REMATCH[1]}"
@@ -111,7 +111,7 @@ runs:
                 else
                   echo "    No reference found (may resolve to default branch)"
                 fi
-              done
+              done < <(grep "$service:" "$file")
               [ $? -eq 1 ] && vulnerable_found=true
             fi
           done
@@ -119,7 +119,7 @@ runs:
           # Pattern: git+https://
           if grep -q "git+https://" "$file"; then
             echo "Found git+https:// dependencies:"
-            grep "git+https://" "$file" | while IFS= read -r line; do
+            while IFS= read -r line; do
               echo "  Checking: $line"
               if [[ $line =~ git\+https://[^#]*#([^\",:]+) ]]; then
                 ref="${BASH_REMATCH[1]}"
@@ -136,14 +136,14 @@ runs:
               else
                 echo "    No reference found (may resolve to default branch)"
               fi
-            done
+            done < <(grep "git+https://" "$file")
             [ $? -eq 1 ] && vulnerable_found=true
           fi
 
           # Pattern: git+ssh://
           if grep -q "git+ssh://" "$file"; then
             echo "Found git+ssh:// dependencies:"
-            grep "git+ssh://" "$file" | while IFS= read -r line; do
+            while IFS= read -r line; do
               echo "  Checking: $line"
               if [[ $line =~ git\+ssh://[^#]*#([^\",:]+) ]]; then
                 ref="${BASH_REMATCH[1]}"
@@ -160,7 +160,7 @@ runs:
               else
                 echo "    No reference found (may resolve to default branch)"
               fi
-            done
+            done < <(grep "git+ssh://" "$file")
             [ $? -eq 1 ] && vulnerable_found=true
           fi
 
@@ -169,14 +169,14 @@ runs:
             for service in github gitlab bitbucket; do
               if grep -q "$service.com" "$file"; then
                 echo "Found $service.com URLs, checking for commit hashes..."
-                grep "$service.com" "$file" | while IFS= read -r line; do
+                while IFS= read -r line; do
                   if [[ $line =~ $service\.com[^#]*#([0-9a-f-A-F]+) ]]; then
                     ref="${BASH_REMATCH[1]}"
                     if ! validate_git_reference "$ref" "" "$service.com" "$file_type"; then
                       exit 1
                     fi
                   fi
-                done
+                done < <(grep "$service.com" "$file")
                 [ $? -eq 1 ] && vulnerable_found=true
               fi
             done
