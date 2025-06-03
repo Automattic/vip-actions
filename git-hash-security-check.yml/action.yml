@@ -1,0 +1,227 @@
+---
+name: Git Hash Security Check
+description: This action checks for short git commit hashes in dependency files.
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Verify Full Git Commit Hashes
+      shell: bash
+      run: |
+        echo "🔍 Checking package.json and npm-shrinkwrap.json for short git commit hashes..."
+
+        # Common function to validate git references
+        validate_git_reference() {
+          local ref="$1"
+          local dep_name="$2"
+          local url_type="$3"
+          local file_type="$4"  # "package.json" or "npm-shrinkwrap.json"
+          
+          # Check if it's a pure hexadecimal string (potential commit hash)
+          if [[ $ref =~ ^[0-9a-f]+$ ]]; then
+            hash_length=${#ref}
+            echo "    Found hex reference: $ref (length: $hash_length)"
+            
+            # Only flag as problematic if it's a reasonable commit hash length but too short
+            if [ $hash_length -ge 7 ] && [ $hash_length -lt 40 ]; then
+              echo "❌ SECURITY VULNERABILITY: Short git hash detected!"
+              if [ "$file_type" = "package.json" ]; then
+                echo "   Dependency: $dep_name ($url_type)"
+                echo "   Hash '$ref' is only $hash_length characters"
+                echo "   REQUIRED: Use full 40-character commit hash"
+                echo ""
+                echo "🛡️  SECURITY REQUIREMENT:"
+                echo "   All git dependencies must use full 40-character commit hashes"
+                echo "   Short hashes are vulnerable to collision attacks"
+                echo ""
+                echo "📖 Why this matters:"
+                echo "   • Short hashes (7-39 chars) have collision vulnerabilities"
+                echo "   • Attackers can create colliding commits in forks"
+                echo "   • This breaks builds and enables supply chain attacks"
+                echo "   • Only full 40-character hashes provide security"
+                echo ""
+                echo "💡 If this is actually a tag, consider using a semantic version:"
+                echo "   • Use tags like 'v1.2.3' instead of hex-only names"
+                echo "   • Or specify the full commit hash that the tag points to"
+              else
+                echo "   Hash '$ref' is only $hash_length characters ($url_type)"
+                echo ""
+                echo "🔧 To fix this:"
+                echo "   1. Update package.json to use full 40-character hashes"
+                echo "   2. Delete npm-shrinkwrap.json"
+                echo "   3. Run 'npm install' to regenerate with full hashes"
+                echo ""
+                echo "📖 Background: npm resolved a short hash from package.json"
+                echo "   This indicates the original dependency used a vulnerable short hash"
+              fi
+              return 1
+            elif [ $hash_length -eq 40 ]; then
+              if [ "$file_type" = "package.json" ]; then
+                echo "    ✅ $dep_name: Secure 40-character commit hash"
+              else
+                echo "    ✅ Secure 40-character commit hash in $file_type ($url_type)"
+              fi
+            elif [ $hash_length -lt 7 ]; then
+              if [ "$file_type" = "package.json" ]; then
+                echo "    ℹ️  $dep_name: Short hex reference '$ref' (likely a tag name)"
+              else
+                echo "    ℹ️  Short hex reference '$ref' in $file_type (unusual but likely safe)"
+              fi
+            else
+              echo "    ⚠️  Hex reference longer than 40 characters: $hash_length"
+            fi
+          else
+            # Contains non-hex characters, definitely a tag/branch
+            if [ "$file_type" = "package.json" ]; then
+              echo "    ✅ $dep_name: Using tag/branch reference '$ref'"
+            else
+              echo "    ✅ Non-hex reference in $url_type: $ref"
+            fi
+          fi
+          return 0
+        }
+
+        # Common function to check git URL patterns in any file
+        check_git_patterns() {
+          local file="$1"
+          local file_type="$2"
+          local vulnerable_found=false
+
+          # Pattern: github:, gitlab:, bitbucket:
+          for service in github gitlab bitbucket; do
+            if grep -q "$service:" "$file"; then
+              echo "Found $service: dependencies:"
+              grep "$service:" "$file" | while IFS= read -r line; do
+                echo "  Checking: $line"
+                if [[ $line =~ $service:[^#]*#([^\",:]+) ]]; then
+                  ref="${BASH_REMATCH[1]}"
+                  if [ "$file_type" = "package.json" ]; then
+                    dep_name=$(echo "$line" | sed 's/.*"\([^"]*\)".*/\1/')
+                    if ! validate_git_reference "$ref" "$dep_name" "$service:" "$file_type"; then
+                      exit 1
+                    fi
+                  else
+                    if ! validate_git_reference "$ref" "" "$service:" "$file_type"; then
+                      exit 1
+                    fi
+                  fi
+                else
+                  echo "    No reference found (may resolve to default branch)"
+                fi
+              done
+              [ $? -eq 1 ] && vulnerable_found=true
+            fi
+          done
+
+          # Pattern: git+https://
+          if grep -q "git+https://" "$file"; then
+            echo "Found git+https:// dependencies:"
+            grep "git+https://" "$file" | while IFS= read -r line; do
+              echo "  Checking: $line"
+              if [[ $line =~ git\+https://[^#]*#([^\",:]+) ]]; then
+                ref="${BASH_REMATCH[1]}"
+                if [ "$file_type" = "package.json" ]; then
+                  dep_name=$(echo "$line" | sed 's/.*"\([^"]*\)".*/\1/')
+                  if ! validate_git_reference "$ref" "$dep_name" "git+https://" "$file_type"; then
+                    exit 1
+                  fi
+                else
+                  if ! validate_git_reference "$ref" "" "git+https://" "$file_type"; then
+                    exit 1
+                  fi
+                fi
+              else
+                echo "    No reference found (may resolve to default branch)"
+              fi
+            done
+            [ $? -eq 1 ] && vulnerable_found=true
+          fi
+
+          # Pattern: git+ssh://
+          if grep -q "git+ssh://" "$file"; then
+            echo "Found git+ssh:// dependencies:"
+            grep "git+ssh://" "$file" | while IFS= read -r line; do
+              echo "  Checking: $line"
+              if [[ $line =~ git\+ssh://[^#]*#([^\",:]+) ]]; then
+                ref="${BASH_REMATCH[1]}"
+                if [ "$file_type" = "package.json" ]; then
+                  dep_name=$(echo "$line" | sed 's/.*"\([^"]*\)".*/\1/')
+                  if ! validate_git_reference "$ref" "$dep_name" "git+ssh://" "$file_type"; then
+                    exit 1
+                  fi
+                else
+                  if ! validate_git_reference "$ref" "" "git+ssh://" "$file_type"; then
+                    exit 1
+                  fi
+                fi
+              else
+                echo "    No reference found (may resolve to default branch)"
+              fi
+            done
+            [ $? -eq 1 ] && vulnerable_found=true
+          fi
+
+          # For shrinkwrap: also check resolved service URLs
+          if [ "$file_type" = "npm-shrinkwrap.json" ]; then
+            for service in github gitlab bitbucket; do
+              if grep -q "$service.com" "$file"; then
+                echo "Found $service.com URLs, checking for commit hashes..."
+                grep "$service.com" "$file" | while IFS= read -r line; do
+                  if [[ $line =~ $service\.com[^#]*#([0-9a-f-A-F]+) ]]; then
+                    ref="${BASH_REMATCH[1]}"
+                    if ! validate_git_reference "$ref" "" "$service.com" "$file_type"; then
+                      exit 1
+                    fi
+                  fi
+                done
+                [ $? -eq 1 ] && vulnerable_found=true
+              fi
+            done
+          fi
+
+          # Return vulnerability status
+          if [ "$vulnerable_found" = true ]; then
+            return 1
+          fi
+          return 0
+        }
+
+        # Check package.json
+        echo ""
+        echo "📋 Checking package.json..."
+        if ! check_git_patterns "package.json" "package.json"; then
+          exit 1
+        fi
+
+        # Summary for package.json
+        if ! grep -q -E "(github:|git\+https://|git\+ssh://|gitlab:|bitbucket:)" package.json; then
+          echo "No git dependencies found in package.json"
+        fi
+        echo "✅ package.json validation complete"
+
+        # Check npm-shrinkwrap.json
+        echo ""
+        echo "📦 Checking npm-shrinkwrap.json..."
+        if [ -f "npm-shrinkwrap.json" ]; then
+          if ! check_git_patterns "npm-shrinkwrap.json" "npm-shrinkwrap.json"; then
+            exit 1
+          fi
+
+          # Summary for shrinkwrap
+          if ! grep -q -E "(git\+ssh:|git\+https:|github\.com|gitlab\.com|bitbucket\.com)" npm-shrinkwrap.json; then
+            echo "No git dependencies found in npm-shrinkwrap.json"
+          fi
+          echo "✅ npm-shrinkwrap.json validation complete"
+        else
+          echo "ℹ️  npm-shrinkwrap.json not found, skipping check"
+        fi
+
+        # Final summary
+        echo ""
+        echo "🎉 Git Hash Security Check Complete!"
+        echo "✅ All git dependencies use secure 40-character commit hashes"
+        echo "✅ No collision-vulnerable short hashes detected"
+        echo "🛡️  Supply chain security requirements satisfied"
