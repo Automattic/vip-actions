@@ -21,7 +21,7 @@ runs:
           local file_type="$4"  # "package.json" or "npm-shrinkwrap.json"
           
           # Check if it's a pure hexadecimal string (potential commit hash)
-          if [[ $ref =~ ^[0-9a-f]+$ ]]; then
+          if [[ $ref =~ ^[0-9A-Fa-f]+$ ]]; then
             hash_length=${#ref}
             echo "    Found hex reference: $ref (length: $hash_length)"
             
