@@ -8,7 +8,7 @@ A collection of GitHub Actions meant to be reused by multiple VIP projects.
 - **Custom Deployment:** Deploy your WordPress VIP application through GitHub Actions and GitHub Releases. [More info](custom-deployment/README.md)
 - **Dependaban:** Ban the use of dependencies that rely on pre- or post-install scripts. [More info](dependaban/README.md)
 - **Dependabot auto-merge:** Automatically merges Dependabot PRs if tests pass. [More info](dependabot-auto-merge/README.md)
-- **Git Hash Security Check:** Validates that all git dependencies use full 40-character commit hashes to prevent short hash collision attacks. [More info](git-hash-security-check.yml/README.md)
+- **Git Hash Security Check:** Validates that all git dependencies use full 40-character commit hashes to prevent short hash collision attacks. [More info](git-hash-security-check/README.md)
 - **Node.js setup**: Reduces boilerplate in your action by performing Node.js setup and installing dependencies consistently. [More info](nodejs-setup/README.md)
 - **npm publish:** Automate the validation, testion, and publishing steps for a new npm release. [More info](npm-publish/README.md)
 - **Stalebot:** Automatically closes stale issues and pull requests. [More info](stale/README.md)
