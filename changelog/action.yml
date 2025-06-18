@@ -21,6 +21,10 @@ inputs:
     description: 'The id of a tag to be added to the post.'
     required: false
     default: ''
+  category-id:
+    description: 'The id of a category to be added to the post.'
+    required: false
+    default: ''
   link-to-pr:
     description: 'Wether to add a link to the Pull Request to the changelog post.'
     required: false
@@ -43,6 +47,7 @@ runs:
           --wp-endpoint='${{ inputs.endpoint }}' \
           --wp-status='${{ inputs.status }}' \
           --wp-tag-ids='${{ inputs.tag-id }}' \
+          --wp-categories='${{ inputs.category-id }}' \
           --link-to-pr='${{ inputs.link-to-pr }}'
       shell: bash
       env:
