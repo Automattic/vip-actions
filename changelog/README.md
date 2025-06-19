@@ -13,6 +13,7 @@ For more info about the tool it uses under the hood, see: https://github.com/Aut
   * `tag-id`: the ID of a tag to be added to the post, empty by default. Can be a comma-separated list of tag IDs.
   * `category-id`: the ID of a category to be added to the post, empty by default. Can be a comma-separated list of category IDs.
   * `link-to-pr`: whether to add a link to the pull request to the changelog post, `false` by default.
+  * `changelog-source`: source of the changelog description. For example, we can get changelog from the last release or last PR. Default is last PR but `last-release` can be provided to use aggregate PRs comprising the last release.
 
 #### Example
 
