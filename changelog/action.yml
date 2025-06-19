@@ -38,7 +38,7 @@ runs:
         php-version: "7.4"
 
     - name: Installs automattic/vip-build-tools
-      run: composer require automattic/vip-build-tools:1.0.6
+      run: composer require automattic/vip-build-tools:1.0.8
       shell: bash
 
     - name: Publishes the changelog
