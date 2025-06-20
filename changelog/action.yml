@@ -42,7 +42,7 @@ runs:
         php-version: "7.4"
 
     - name: Installs automattic/vip-build-tools
-      run: composer require automattic/vip-build-tools:dev-update/improve-reusability-across-repos
+      run: composer require automattic/vip-build-tools:1.1.0
       shell: bash
 
     - name: Publishes the changelog
