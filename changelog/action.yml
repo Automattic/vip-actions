@@ -61,4 +61,4 @@ runs:
         CIRCLE_PROJECT_USERNAME: ${{ github.repository_owner }}
         CIRCLE_PROJECT_REPONAME: ${{ github.event.repository.name }}
         CIRCLE_SHA1: ${{ github.sha }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
+        GITHUB_BASE_BRANCH: ${{ github.ref_name }}
