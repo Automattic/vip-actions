@@ -42,7 +42,7 @@ runs:
         php-version: "7.4"
 
     - name: Installs automattic/vip-build-tools
-      run: composer require automattic/vip-build-tools:1.1.0
+      run: composer require automattic/vip-build-tools:dev-vipdoc-519/add/support-release-prs
       shell: bash
 
     - name: Publishes the changelog
@@ -61,3 +61,4 @@ runs:
         CIRCLE_PROJECT_USERNAME: ${{ github.repository_owner }}
         CIRCLE_PROJECT_REPONAME: ${{ github.event.repository.name }}
         CIRCLE_SHA1: ${{ github.sha }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
