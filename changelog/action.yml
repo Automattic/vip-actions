@@ -9,6 +9,10 @@ inputs:
   endpoint-token:
     description: 'The WordPress token required in order to post to the WordPress endpoint.'
     required: true
+  endpoint-auth-type:
+    description: 'The authentication type to use. Can be either "bearer" or "basic".'
+    required: false
+    default: 'bearer'
   repo-token:
     description: 'The GitHub token required in order to retrieve Pull Requests.'
     required: false
@@ -42,7 +46,7 @@ runs:
         php-version: "7.4"
 
     - name: Installs automattic/vip-build-tools
-      run: composer require automattic/vip-build-tools:1.1.0
+      run: composer require automattic/vip-build-tools:1.2.0
       shell: bash
 
     - name: Publishes the changelog
@@ -57,7 +61,9 @@ runs:
       shell: bash
       env:
         CHANGELOG_POST_TOKEN: ${{ inputs.endpoint-token }}
+        CHANGELOG_POST_AUTH_TYPE: ${{ inputs.endpoint-auth-type }}
         GITHUB_TOKEN: ${{ inputs.repo-token }}
         CIRCLE_PROJECT_USERNAME: ${{ github.repository_owner }}
         CIRCLE_PROJECT_REPONAME: ${{ github.event.repository.name }}
         CIRCLE_SHA1: ${{ github.sha }}
+        GITHUB_BASE_BRANCH: ${{ github.ref_name }}
