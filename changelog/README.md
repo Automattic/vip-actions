@@ -8,6 +8,7 @@ For more info about the tool it uses under the hood, see: https://github.com/Aut
 
   * `endpoint`: the endpoint to post the changelog; `https://public-api.wordpress.com/wp/v2/sites/vipinternalchangelog.wordpress.com/posts` by default;
   * `endpoint-token`: the WordPress token required to post to the given `endpoint`. **Required**.
+  * `endpoint-auth-type`: the authentication type to use for the endpoint. Can be either `bearer` (the default) or `basic`.
   * `repo-token`: the GitHub token required to retrieve pull requests. By default, `github.token` is used. Please make sure that the provided token has the `pull-requests: read` permission.
   * `status`: the status of the post to be published. Can be either `publish` (the default) or `draft`.
   * `tag-id`: the ID of a tag to be added to the post, empty by default. Can be a comma-separated list of tag IDs.
