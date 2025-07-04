@@ -37,6 +37,10 @@ inputs:
     description: 'The source of the changelog.'
     required: false
     default: ''
+  terms:
+    description: 'The terms to be added to the post.'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -46,7 +50,7 @@ runs:
         php-version: "7.4"
 
     - name: Installs automattic/vip-build-tools
-      run: composer require automattic/vip-build-tools:1.2.0
+      run: composer require automattic/vip-build-tools:dev-add/meta-and-custom-tax-support
       shell: bash
 
     - name: Publishes the changelog
@@ -56,6 +60,7 @@ runs:
           --wp-status='${{ inputs.status }}' \
           --wp-tag-ids='${{ inputs.tag-id }}' \
           --wp-categories='${{ inputs.category-id }}' \
+          --wp-terms='${{ inputs.terms }}'
           --link-to-pr='${{ inputs.link-to-pr }}' \
           --changelog-source='${{ inputs.source }}'
       shell: bash

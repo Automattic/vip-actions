@@ -13,6 +13,7 @@ For more info about the tool it uses under the hood, see: https://github.com/Aut
   * `status`: the status of the post to be published. Can be either `publish` (the default) or `draft`.
   * `tag-id`: the ID of a tag to be added to the post, empty by default. Can be a comma-separated list of tag IDs.
   * `category-id`: the ID of a category to be added to the post, empty by default. Can be a comma-separated list of category IDs.
+  * `terms`: the taxonomy, and term IDs to be added to the post. For example `my_tax:1,2`
   * `link-to-pr`: whether to add a link to the pull request to the changelog post, `false` by default.
   * `changelog-source`: source of the changelog description. For example, we can get changelog from the last release or last PR. Default is last PR but `last-release` can be provided to use aggregate PRs comprising the last release.
 
@@ -30,10 +31,14 @@ jobs:
     name: Changelog
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: read
     steps:
       - uses: Automattic/vip-actions/changelog@trunk
         with:
+          endpoint: ${{ vars.CHANGELOG_ENDPOINT}}
           endpoint-token: ${{ secrets.CHANGELOG_POST_TOKEN }}
+          terms: 'my_taxonomy:2'
+          status: 'draft'
           link-to-pr: 'true'
 ```
