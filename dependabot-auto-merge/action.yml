@@ -13,7 +13,7 @@ runs:
   steps:
     - name: Dependabot metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1
+      uses: dependabot/fetch-metadata@v2
     - name: Enable auto-merge for Dependabot PRs
       shell: bash
       if: ${{ contains(fromJson('["version-update:semver-minor", "version-update:semver-patch"]'), steps.dependabot-metadata.outputs.update-type) && github.event.pull_request.user.login == 'dependabot[bot]' }}
