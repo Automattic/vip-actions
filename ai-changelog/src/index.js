@@ -170,36 +170,55 @@ async function getPrompt( octokit, owner, repo, prNumber, what, overriddenDescri
 	}
 }
 
+/**
+ * @param {string} prompt
+ * @param {string} openAiKey
+ * @param {string} model
+ * @return {Promise<string>} Response from OpenAI
+ */
+async function askOpenAI( prompt, openAiKey, model ) {
+	const response = await fetch( 'https://api.openai.com/v1/chat/completions', {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${ openAiKey }`,
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify( {
+			model,
+			messages: [ { role: 'user', content: prompt } ],
+			max_tokens: 500,
+		} ),
+	} );
+
+	const data = await response.json();
+	return data.choices?.[ 0 ]?.message?.content?.trim() ?? '';
+}
+
 async function run() {
 	try {
 		const { prNumber, token, openAiKey, what, model, description } = getParams();
 		const { owner, repo } = context.repo;
 		const octokit = getOctokit( token );
 
-		const prompt = await getPrompt( octokit, owner, repo, prNumber, what, description );
+		let prompt = await getPrompt( octokit, owner, repo, prNumber, what, description );
 		debug( `Generated prompt: ${ prompt }` );
 
-		const response = await fetch( 'https://api.openai.com/v1/chat/completions', {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${ openAiKey }`,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify( {
-				model,
-				messages: [ { role: 'user', content: prompt } ],
-				max_tokens: 500,
-			} ),
-		} );
-
-		const data = await response.json();
-		const changelogEntry = data.choices?.[ 0 ]?.message?.content?.trim();
-
+		let changelogEntry = await askOpenAI( prompt, openAiKey, model );
 		if ( ! changelogEntry ) {
 			warning( 'No content returned from OpenAI' );
-		} else {
-			setOutput( 'changelog-entry', changelogEntry );
+			if ( what !== 'commits' ) {
+				debug( 'Retrying in `commits` mode' );
+				prompt = await getPrompt( octokit, owner, repo, prNumber, 'commits', description );
+				debug( `Generated prompt: ${ prompt }` );
+				changelogEntry = await askOpenAI( prompt, openAiKey, model );
+				if ( ! changelogEntry ) {
+					warning( 'No content returned from OpenAI in `commits` mode' );
+					return;
+				}
+			}
 		}
+
+		setOutput( 'changelog-entry', changelogEntry );
 	} catch ( error ) {
 		setFailed( error.message );
 	}
