@@ -1,0 +1,16 @@
+name: Generate Changelog Entry
+description: Generate a changelog entry for the given Pull Request using OpenAI.
+inputs:
+  pr_number:
+    description: The pull request number to generate a changelog entry for.
+    required: true
+  token:
+    description: The GitHub token for authentication.
+    required: true
+    default: ${{ secrets.GITHUB_TOKEN }}
+  openai_api_key:
+    description: OpenAI API key for authentication.
+    required: true
+runs:
+  using: node20
+  main: dist/index.js

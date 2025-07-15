@@ -1,0 +1,14 @@
+{
+  "name": "ai-changelog",
+  "version": "1.0.0",
+  "description": "Generate a changelog entry for the given Pull Request using OpenAI",
+  "main": "src/index.js",
+  "keywords": [],
+  "author": "Volodymyr Kolesnykov <volodymyr.kolesnykov@automattic.com>",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1"
+  }
+}
