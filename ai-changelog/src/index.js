@@ -2,32 +2,6 @@ import { env } from 'node:process';
 import { debug, getInput, setFailed, setOutput, warning } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 
-const prompts = {
-	diff: `Generate a non-technical changelog entry as a markdown list entry for the pull request data below.
-Respond in 1-2 sentences, user-friendly language. The entry should be suitable for a general audience, avoiding technical details.
-
-PR Title: {{title}}
-PR Description: {{body}}
-PR formatted as a diff:
-{{diff}}`,
-
-	patch: `Generate a non-technical changelog entry as a markdown list entry for the pull request data below.
-Respond in 1-2 sentences, user-friendly language. The entry should be suitable for a general audience, avoiding technical details.
-
-PR Title: {{title}}
-PR Description: {{body}}
-PR formatted as a patch:
-{{patch}}`,
-
-	commits: `Generate a non-technical changelog entry as a markdown list entry for the pull request data below.
-Respond in 1-2 sentences, user-friendly language. The entry should be suitable for a general audience, avoiding technical details.
-
-PR Title: {{title}}
-PR Description: {{body}}
-List of commit messages:
-{{commits}}`,
-};
-
 function getParams() {
 	const prNumber = +getInput( 'pr_number' );
 	const what = getInput( 'analyze' ) || 'diff';
@@ -141,33 +115,39 @@ async function getPullRequestDiff( octokit, owner, repo, prNumber, format ) {
  * @return {Promise<string>} Prompt
  */
 async function getPrompt( octokit, owner, repo, prNumber, what, overriddenDescription ) {
+	const template = `You are assisting in generating a changelog entry from a pull request.
+Given the pull request title, description, and diff, write a single Markdown list item summarizing the change.
+
+Requirements:
+  * Audience: General users with no technical background.
+
+Style:
+  * Clear, precise, and concise (1–2 short sentences).
+  * Non-technical wording: Avoid code references, variable names, file paths, or developer jargon.
+  * Focus on the visible impact or purpose of the change rather than implementation details.
+  * Use active voice and present tense.
+
+Input:
+`;
 	const { title, body } = await getPullRequestInfo( octokit, owner, repo, prNumber );
 	const description = overriddenDescription || body;
+	let info;
 	switch ( what ) {
-		case 'patch': {
-			const patch = await getPullRequestDiff( octokit, owner, repo, prNumber, 'patch' );
-			return prompts.patch
-				.replace( '{{title}}', title )
-				.replace( '{{body}}', description )
-				.replace( '{{patch}}', patch );
-		}
+		case 'patch':
+			info = await getPullRequestDiff( octokit, owner, repo, prNumber, 'patch' );
+			break;
 
-		case 'commits': {
-			const commits = await getPullRequestCommits( octokit, owner, repo, prNumber );
-			return prompts.commits
-				.replace( '{{title}}', title )
-				.replace( '{{body}}', description )
-				.replace( '{{commits}}', commits.join( '\n' ) );
-		}
+		case 'commits':
+			info = await getPullRequestCommits( octokit, owner, repo, prNumber );
+			break;
 
 		default: {
-			const diff = await getPullRequestDiff( octokit, owner, repo, prNumber, 'diff' );
-			return prompts.diff
-				.replace( '{{title}}', title )
-				.replace( '{{body}}', description )
-				.replace( '{{diff}}', diff );
+			info = await getPullRequestDiff( octokit, owner, repo, prNumber, 'diff' );
+			break;
 		}
 	}
+
+	return `${ template }\n${ title }\n\n${ description }\n\n${ info }`;
 }
 
 /**
@@ -201,7 +181,6 @@ async function run() {
 		const octokit = getOctokit( token );
 
 		let prompt = await getPrompt( octokit, owner, repo, prNumber, what, description );
-		debug( `Generated prompt: ${ prompt }` );
 
 		let changelogEntry = await askOpenAI( prompt, openAiKey, model );
 		if ( ! changelogEntry ) {
