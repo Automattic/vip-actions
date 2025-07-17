@@ -7,7 +7,7 @@ inputs:
   token:
     description: The GitHub token for authentication.
     required: true
-    default: ${{ secrets.GITHUB_TOKEN }}
+    default: ${{ github.token }}
   openai_api_key:
     description: OpenAI API key for authentication.
     required: true
