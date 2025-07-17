@@ -15,6 +15,83 @@ updates:
     labels:
       - '[Status] Needs Review'
 
+  - directory: './ai-changelog'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './ai-changelog'
+    package-ecosystem: 'npm'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './changed-files-detector'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './changelog'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './coverage-pr-comment'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './coverage-pr-comment'
+    package-ecosystem: 'npm'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './custom-deployment'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './dependaban'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './dependabot-auto-merge'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './expose-github-runtime'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './git-hash-security-check'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
   - directory: '/junit-newrelic-processor'
     package-ecosystem: 'docker'
     schedule:
@@ -22,7 +99,14 @@ updates:
     labels:
       - '[Status] Needs Review'
 
-  - directory: './expose-github-runtime'
+  - directory: './junit-newrelic-processor'
+    package-ecosystem: 'github-actions'
+    schedule:
+      interval: 'daily'
+    labels:
+      - '[Status] Needs Review'
+
+  - directory: './nodejs-setup'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
@@ -43,14 +127,7 @@ updates:
     labels:
       - '[Status] Needs Review'
 
-  - directory: './junit-newrelic-processor'
-    package-ecosystem: 'github-actions'
-    schedule:
-      interval: 'daily'
-    labels:
-      - '[Status] Needs Review'
-
-  - directory: './dependabot-auto-merge'
+  - directory: './npm-publish-prerelease'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
@@ -64,31 +141,23 @@ updates:
     labels:
       - '[Status] Needs Review'
 
-  - directory: './changelog'
+  - directory: './sticky-pr-comment'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './npm-publish-prerelease'
-    package-ecosystem: 'github-actions'
+  - directory: './sticky-pr-comment'
+    package-ecosystem: 'npm'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
 
-  - directory: './nodejs-setup'
+  - directory: './swagger-validation'
     package-ecosystem: 'github-actions'
     schedule:
       interval: 'daily'
     labels:
       - '[Status] Needs Review'
-
-  - directory: './dependaban'
-    package-ecosystem: 'github-actions'
-    schedule:
-      interval: 'daily'
-    labels:
-      - '[Status] Needs Review'
-
