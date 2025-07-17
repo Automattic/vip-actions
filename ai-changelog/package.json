@@ -1,0 +1,23 @@
+{
+  "name": "ai-changelog",
+  "version": "1.0.0",
+  "description": "Generate a changelog entry for the given Pull Request using OpenAI",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/index.js --minify"
+  },
+  "author": "Volodymyr Kolesnykov <volodymyr.kolesnykov@automattic.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Automattic/vip-actions.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
+  }
+}
