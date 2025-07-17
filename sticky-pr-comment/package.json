@@ -4,7 +4,7 @@
   "description": "Create a comment on pull request or update the existing one",
   "main": "lib/main.js",
   "scripts": {
-    "build": "tsc"
+    "build": "ncc build --source-map --license licenses.txt"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
+    "@vercel/ncc": "^0.38.3",
     "typescript": "^5.8.3"
   }
 }
