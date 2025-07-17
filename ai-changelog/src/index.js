@@ -6,9 +6,9 @@ function getParams() {
 	const prNumber = +getInput( 'pr_number' );
 	const what = getInput( 'analyze' ) || 'diff';
 	const model = getInput( 'model' ) || 'gpt-4-turbo';
-	const description = getInput( 'pr-description' ) ?? '';
-	const token = env.GITHUB_TOKEN;
-	const openAiKey = env.OPENAI_API_KEY;
+	const description = getInput( 'pr_description' ) ?? '';
+	const token = getInput( 'token' ) || env.GITHUB_TOKEN;
+	const openAiKey = getInput( 'openai_api_key' ) || env.OPENAI_API_KEY;
 
 	if ( isNaN( prNumber ) || prNumber <= 0 ) {
 		throw new Error( 'Invalid PR number. It must be a positive integer.' );
@@ -197,7 +197,7 @@ async function run() {
 			}
 		}
 
-		setOutput( 'changelog-entry', changelogEntry );
+		setOutput( 'changelog_entry', changelogEntry );
 	} catch ( error ) {
 		setFailed( error.message );
 	}

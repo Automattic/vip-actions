@@ -19,11 +19,11 @@ inputs:
     description: The OpenAI model to use for generating the changelog entry.
     required: false
     default: gpt-4.1
-  pr-description:
+  pr_description:
     description: The description to use instead of the original PR description.
     required: false
 outputs:
-  changelog-entry:
+  changelog_entry:
     description: The generated changelog entry.
 runs:
   using: node20
