@@ -24,7 +24,7 @@
     "@octokit/graphql-schema": "^14.52.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.14",
+    "@types/node": "^24.0.14",
     "typescript": "^5.3.3"
   }
 }
