@@ -1,0 +1,111 @@
+name: Generate Changelog Entry with OpenAI
+description: Generate a changelog entry for the given Pull Request using OpenAI.
+inputs:
+  pr_number:
+    description: The pull request number to generate a changelog entry for.
+    required: true
+    default: ${{ github.event.issue.number }}
+  comment_id:
+    description: The ID of the comment that triggered the request.
+    required: false
+    default: ${{ github.event.comment.id }}
+  token:
+    description: The GitHub token for authentication.
+    required: true
+    default: ${{ github.token }}
+  openai_api_key:
+    description: OpenAI API key for authentication.
+    required: true
+  analyze:
+    description: What to analyze (diff, patch, commits)
+    required: false
+    default: diff
+  model:
+    description: The OpenAI model to use for generating the changelog entry.
+    required: false
+    default: gpt-4.1
+  pr_description:
+    description: The description to use instead of the original PR description.
+    required: false
+  user_login:
+    description: The GitHub username of the user who requested the changelog entry.
+    required: false
+    default: ${{ github.event.comment.user.login }}
+  post_comment:
+    description: Whether to post the generated changelog entry as a comment.
+    required: false
+    default: 'true'
+outputs:
+  changelog_entry:
+    description: The generated changelog entry.
+    value: ${{ steps.changelog.outputs.changelog_entry }}
+runs:
+  using: composite
+  steps:
+    - name: Acknowledge request
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+      if: inputs.comment_id
+      with:
+        issue-number: ${{ inputs.pr_number }}
+        reactions: 'eyes'
+        comment-id: ${{ inputs.comment_id }}
+
+    - name: Check if user has write access
+      if: inputs.user_login
+      id: check_access
+      uses: actions/github-script@v7.0.1
+      with:
+        script: |
+          const username = '${{ inputs.user_login }}';
+          const { data: membership } = await github.rest.repos.getCollaboratorPermissionLevel({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            username,
+          });
+          if (membership.permission !== 'write' && membership.permission !== 'admin' && membership.permission !== 'maintain') {
+            core.setFailed(`User ${username} does not have write access.`);
+            core.setOutput('authorized', 'false');
+          } else {
+            core.setOutput('authorized', 'true');
+          }
+
+    - name: Generate Changelog Entry
+      if: steps.check_access.outputs.authorized == 'true'
+      id: changelog
+      uses: Automattic/vip-actions/ai-changelog@trunk
+      with:
+        pr_number: ${{ inputs.pr_number }}
+        openai_api_key: ${{ inputs.openai_api_key }}
+
+    - name: Post Changelog Comment
+      if: >
+        steps.check_access.outputs.authorized == 'true' &&
+        steps.changelog.outputs.changelog_entry &&
+        inputs.post_comment == 'true'
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+      with:
+        issue-number: ${{ inputs.pr_number }}
+        body: |
+          ## AI-Generated Changelog Entry
+
+          ${{ steps.changelog.outputs.changelog_entry }}
+
+        edit-mode: replace
+
+    - name: Set status (success)
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+      if: success() && inputs.comment_id
+      with:
+        issue-number: ${{ inputs.pr_number }}
+        reactions: 'hooray'
+        comment-id: ${{ inputs.comment_id }}
+        reactions-edit-mode: replace
+
+    - name: Set status (failure)
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+      if: failure() && inputs.comment_id
+      with:
+        issue-number: ${{ inputs.pr_number }}
+        reactions: '-1'
+        comment-id: ${{ inputs.comment_id }}
+        reactions-edit-mode: replace
