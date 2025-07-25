@@ -22,6 +22,9 @@ inputs:
   pr_description:
     description: The description to use instead of the original PR description.
     required: false
+  prompt:
+    description: Override the prompt used for generating the changelog entry.
+    required: false
 outputs:
   changelog_entry:
     description: The generated changelog entry.
