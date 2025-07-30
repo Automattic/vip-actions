@@ -170,7 +170,15 @@ async function askOpenAI( prompt, openAiKey, model ) {
 		} ),
 	} );
 
+	debug( `OpenAI response status: ${ response.status }` );
+	if ( ! response.ok ) {
+		const responseText = await response.text();
+		warning( `OpenAI request failed with status ${ response.status }: ${ responseText }` );
+		return '';
+	}
+
 	const data = await response.json();
+	debug( `OpenAI response data: ${ JSON.stringify( data, null, 2 ) }` );
 	return data.choices?.[ 0 ]?.message?.content?.trim() ?? '';
 }
 
