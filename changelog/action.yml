@@ -60,7 +60,7 @@ runs:
           --wp-status='${{ inputs.status }}' \
           --wp-tag-ids='${{ inputs.tag-id }}' \
           --wp-categories='${{ inputs.category-id }}' \
-          --wp-terms='${{ inputs.terms }}'
+          --wp-terms='${{ inputs.terms }}' \
           --link-to-pr='${{ inputs.link-to-pr }}' \
           --changelog-source='${{ inputs.source }}'
       shell: bash
