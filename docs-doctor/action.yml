@@ -1,0 +1,39 @@
+name: Docs Doctor
+description: GitHub Action to analyze documentation sites for inconsistencies and issues using AI.
+author: Automattic
+
+branding:
+  icon: file-text
+  color: black
+
+inputs:
+  url:
+    description: The URL to the docs site
+    required: true
+
+  openai_api_key:
+    description: The OpenAI API key to use for generating the docs report
+    required: true
+
+  firecrawl_api_key:
+    description: The Firecrawl API key to use for crawling the docs site
+    required: true
+
+  confidence_threshold:
+    description: The confidence threshold for the AI
+    required: false
+    default: '0.8'
+
+  post_comment:
+    description: Whether to post the generated docs report as a comment.
+    required: false
+    default: 'true'
+
+  openai_model:
+    description: The OpenAI model to use for generating the docs report.
+    required: false
+    default: gpt-4o-mini
+
+outputs:
+  inconsistencies:
+    description: The JSON object containing the inconsistencies found in the docs.

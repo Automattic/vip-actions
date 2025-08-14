@@ -1,0 +1,30 @@
+{
+  "name": "docs-doctor",
+  "description": "GitHub Action to analyze documentation sites for inconsistencies and issues using AI.",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist --source-map",
+    "local-action": "npx @github/local-action . src/main.ts .env",
+    "format": "prettier '**/*.(js|json|jsx|md|ts|tsx|yml|yaml)' --write"
+  },
+  "type": "module",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "zod": "^3.25.76",
+    "ai": "^4.3.19",
+    "@ai-sdk/openai": "^1.3.23",
+    "@mendable/firecrawl-js": "^1.29.3"
+  },
+  "devDependencies": {
+    "@automattic/eslint-plugin-wpvip": "0.13.1",
+    "@github/local-action": "^5.1.0",
+    "@types/node": "^24.1.0",
+    "prettier": "npm:wp-prettier@2.8.5",
+    "@vercel/ncc": "^0.38.3",
+    "typescript": "^5.8.3"
+  }
+}
