@@ -131,18 +131,15 @@ export class Doctor {
 			);
 		}
 
-		core.setOutput( 'inconsistencies', JSON.stringify( inconsistencies, null, 2 ) );
+		core.setOutput( 'jsonReport', JSON.stringify( inconsistencies, null, 2 ) );
+		core.setOutput( 'markdownReport', this.buildPRComment( inconsistencies ) );
 
 		if ( this.postComment ) {
 			await this.postCommentIfNeeded( inconsistencies );
 		}
 	}
 
-	private async postCommentIfNeeded( relevantInconsistencies: Inconsistency[] ) {
-		if ( ! this.postComment ) {
-			return;
-		}
-
+	private buildPRComment( relevantInconsistencies: Inconsistency[] ) {
 		const relevantInconsistenciesByURL = relevantInconsistencies.reduce( ( acc, obj ) => {
 			if ( ! acc[ obj.url ] ) acc[ obj.url ] = [];
 			acc[ obj.url ].push( obj );
@@ -178,7 +175,15 @@ export class Doctor {
 
 </details>`;
 
-		const commentBody = `${ PR_COMMENT_HEADER }\n\n${ comment }\n\n${ footer }`;
+		return `${ PR_COMMENT_HEADER }\n\n${ comment }\n\n${ footer }`;
+	}
+
+	private async postCommentIfNeeded( relevantInconsistencies: Inconsistency[] ) {
+		if ( ! this.postComment ) {
+			return;
+		}
+
+		const commentBody = this.buildPRComment( relevantInconsistencies );
 
 		const existingCommentId = await this.findExistingBotComment();
 

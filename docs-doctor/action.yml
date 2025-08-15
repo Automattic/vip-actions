@@ -35,5 +35,7 @@ inputs:
     default: gpt-4o-mini
 
 outputs:
-  inconsistencies:
+  jsonReport:
     description: The JSON object containing the inconsistencies found in the docs.
+  markdownReport:
+    description: The markdown report containing the inconsistencies found in the docs.
