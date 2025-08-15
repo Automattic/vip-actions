@@ -10,8 +10,12 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import TurndownService from 'turndown';
 import * as xml2js from 'xml2js';
+import { URL } from 'url';
 
 const PR_COMMENT_HEADER = `## 🤖 AI-Generated Docs Inconsistencies Report`;
+
+// Security and timeout constants
+const REQUEST_TIMEOUT = 30000; // 30 seconds per request
 
 interface PullRequestInfo {
 	title: string;
@@ -48,7 +52,6 @@ export class Doctor {
 	private readonly urlsFile?: string;
 	private readonly firecrawlClient?: FirecrawlApp;
 
-
 	private readonly prContext: {
 		owner: string;
 		repo: string;
@@ -58,8 +61,8 @@ export class Doctor {
 	constructor() {
 		this.url = core.getInput( 'url', { required: true } );
 
-		if ( ! this.url.startsWith( 'http' ) ) {
-			throw new Error( 'Invalid URL format' );
+		if ( ! this.isValidUrl( this.url ) ) {
+			throw new Error( 'Invalid URL format or protocol not allowed' );
 		}
 
 		const openAIToken = core.getInput( 'openai_api_key', { required: true } );
@@ -67,6 +70,11 @@ export class Doctor {
 		const firecrawlApiKey = core.getInput( 'firecrawl_api_key' ) || env.FIRECRAWL_API_KEY;
 		this.urlsFile = core.getInput( 'urls_file' );
 		this.sitemapURL = core.getInput( 'sitemap_url' );
+
+		if ( this.sitemapURL && ! this.isValidUrl( this.sitemapURL ) ) {
+			throw new Error( 'Invalid Sitemap URL format or protocol not allowed' );
+		}
+
 		this.confidenceThreshold = Number( core.getInput( 'confidence_threshold' ) ) || 0.8;
 
 		this.openAIModel = core.getInput( 'openai_model' ) || 'gpt-4o-mini';
@@ -105,48 +113,59 @@ export class Doctor {
 	}
 
 	public async run(): Promise< void > {
-		const prInfo = await this.getPullRequestInfo(
-			this.prContext.owner,
-			this.prContext.repo,
-			this.prContext.number
-		);
+		// Set overall execution timeout
+		const executionTimeoutSeconds = Number( core.getInput( 'execution_timeout' ) ) || 600;
+		const executionTimeoutMs = executionTimeoutSeconds * 1000;
+		const executionTimeout = setTimeout( () => {
+			throw new Error( `Execution timeout: Action exceeded ${ executionTimeoutSeconds } seconds` );
+		}, executionTimeoutMs );
 
-		const relatedDocs = await this.getRelatedDocsURLs( prInfo );
-		if ( relatedDocs.length === 0 ) {
-			core.info( 'No related documentation pages found for this PR.' );
-			return;
-		}
-
-		core.info( 'Related documentation pages found:' );
-		relatedDocs.forEach( doc =>
-			core.info(
-				`- ${ doc.url } (confidence: ${ doc.confidence } / ${
-					doc.confidence >= this.confidenceThreshold ? 'relevant' : 'not relevant'
-				})`
-			)
-		);
-
-		const relevantRelatedDocs = relatedDocs.filter(
-			doc => doc.confidence >= this.confidenceThreshold
-		);
-
-		const inconsistencies: Inconsistency[] = [];
-
-		for ( const doc of relevantRelatedDocs ) {
-			core.info( `Reviewing documentation page: ${ doc.url }` );
-
-			const inconsistenciesForURL = await this.getInconsistenciesForURL( prInfo, doc.url );
-
-			inconsistencies.push(
-				...inconsistenciesForURL.filter( d => d.confidence >= this.confidenceThreshold )
+		try {
+			const prInfo = await this.getPullRequestInfo(
+				this.prContext.owner,
+				this.prContext.repo,
+				this.prContext.number
 			);
-		}
 
-		core.setOutput( 'jsonReport', JSON.stringify( inconsistencies, null, 2 ) );
-		core.setOutput( 'markdownReport', this.buildPRComment( inconsistencies ) );
+			const relatedDocs = await this.getRelatedDocsURLs( prInfo );
+			if ( relatedDocs.length === 0 ) {
+				core.info( 'No related documentation pages found for this PR.' );
+				return;
+			}
 
-		if ( this.postComment ) {
-			await this.postCommentIfNeeded( inconsistencies );
+			core.info( 'Related documentation pages found:' );
+			relatedDocs.forEach( doc =>
+				core.info(
+					`- ${ doc.url } (confidence: ${ doc.confidence } / ${
+						doc.confidence >= this.confidenceThreshold ? 'relevant' : 'not relevant'
+					})`
+				)
+			);
+
+			const relevantRelatedDocs = relatedDocs.filter(
+				doc => doc.confidence >= this.confidenceThreshold
+			);
+
+			const inconsistencies: Inconsistency[] = [];
+
+			for ( const doc of relevantRelatedDocs ) {
+				core.info( `Reviewing documentation page: ${ doc.url }` );
+
+				const inconsistenciesForURL = await this.getInconsistenciesForURL( prInfo, doc.url );
+
+				inconsistencies.push(
+					...inconsistenciesForURL.filter( d => d.confidence >= this.confidenceThreshold )
+				);
+			}
+
+			core.setOutput( 'jsonReport', JSON.stringify( inconsistencies, null, 2 ) );
+			core.setOutput( 'markdownReport', this.buildPRComment( inconsistencies ) );
+
+			if ( this.postComment ) {
+				await this.postCommentIfNeeded( inconsistencies );
+			}
+		} finally {
+			clearTimeout( executionTimeout );
 		}
 	}
 
@@ -388,12 +407,34 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 	private async getPageContentParsed( url: string ) {
 		const turndownService = new TurndownService();
 
-		const response = await fetch( url );
-		if ( ! response.ok ) {
-			throw new Error( `Failed to fetch documentation page: ${ response.statusText }` );
-		}
+		const controller = new AbortController();
+		const timeoutId = setTimeout( () => controller.abort(), REQUEST_TIMEOUT );
 
-		return turndownService.turndown( await response.text() );
+		try {
+			const response = await fetch( url, {
+				signal: controller.signal,
+				redirect: 'follow',
+				headers: {
+					'User-Agent': 'GitHub-Actions-Docs-Doctor/1.0',
+				},
+			} );
+
+			if ( ! response.ok ) {
+				throw new Error(
+					`Failed to fetch documentation page: ${ response.status } ${ response.statusText }`
+				);
+			}
+
+			const text = await response.text();
+			return turndownService.turndown( text );
+		} catch ( error ) {
+			if ( error instanceof Error && error.name === 'AbortError' ) {
+				throw new Error( `Request timeout while fetching: ${ url }` );
+			}
+			throw error;
+		} finally {
+			clearTimeout( timeoutId );
+		}
 	}
 
 	private async findExistingBotComment(): Promise< number | null > {
@@ -411,32 +452,63 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 	}
 
 	private async getUrlsFromSitemap( sitemapUrl: string ) {
-		const response = await fetch( sitemapUrl );
-
-		if ( ! response.ok ) {
-			throw new Error( `Failed to fetch sitemap: ${ response.statusText }` );
+		if ( ! this.isValidUrl( sitemapUrl ) ) {
+			throw new Error( `Invalid sitemap URL: ${ sitemapUrl }` );
 		}
 
-		const xmlData = await response.text();
+		const controller = new AbortController();
+		const timeoutId = setTimeout( () => controller.abort(), REQUEST_TIMEOUT );
 
-		const result = await xml2js.parseStringPromise( xmlData );
-
-		const urls: string[] = [];
-		if ( result.urlset && result.urlset.url ) {
-			result.urlset.url.forEach( ( entry: { loc: string[] } ) => {
-				if ( entry.loc && entry.loc[ 0 ] ) {
-					urls.push( entry.loc[ 0 ] );
-				}
+		try {
+			const response = await fetch( sitemapUrl, {
+				signal: controller.signal,
+				headers: {
+					'User-Agent': 'GitHub-Actions-Docs-Doctor/1.0',
+				},
 			} );
-		} else if ( result.sitemapindex && result.sitemapindex.sitemap ) {
-			for ( const sitemapEntry of result.sitemapindex.sitemap ) {
-				if ( sitemapEntry.loc && sitemapEntry.loc[ 0 ] ) {
-					const nestedUrls = await this.getUrlsFromSitemap( sitemapEntry.loc[ 0 ] );
-					urls.push( ...nestedUrls );
+
+			if ( ! response.ok ) {
+				throw new Error( `Failed to fetch sitemap: ${ response.status } ${ response.statusText }` );
+			}
+
+			const xmlData = await response.text();
+
+			const result = await xml2js.parseStringPromise( xmlData );
+
+			const urls: string[] = [];
+			if ( result.urlset && result.urlset.url ) {
+				result.urlset.url.forEach( ( entry: { loc: string[] } ) => {
+					if ( entry.loc && entry.loc[ 0 ] ) {
+						urls.push( entry.loc[ 0 ] );
+					}
+				} );
+			} else if ( result.sitemapindex && result.sitemapindex.sitemap ) {
+				for ( const sitemapEntry of result.sitemapindex.sitemap ) {
+					if ( sitemapEntry.loc && sitemapEntry.loc[ 0 ] ) {
+						const nestedUrls = await this.getUrlsFromSitemap( sitemapEntry.loc[ 0 ] );
+						urls.push( ...nestedUrls );
+					}
 				}
 			}
+			return urls;
+		} catch ( error ) {
+			if ( error instanceof Error && error.name === 'AbortError' ) {
+				throw new Error( `Request timeout while fetching sitemap: ${ sitemapUrl }` );
+			}
+			throw error;
+		} finally {
+			clearTimeout( timeoutId );
 		}
-		return urls;
+	}
+
+	private isValidUrl( url: string ): boolean {
+		try {
+			const parsedUrl = new URL( url );
+			// Only allow HTTP and HTTPS protocols
+			return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+		} catch {
+			return false;
+		}
 	}
 
 	private getSeverityEmoji( severity: string ): string {

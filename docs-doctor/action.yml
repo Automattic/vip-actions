@@ -42,8 +42,17 @@ inputs:
     required: false
     default: gpt-4o-mini
 
+  execution_timeout:
+    description: Maximum execution time in seconds (default 600 seconds / 10 minutes)
+    required: false
+    default: '600'
+
 outputs:
   jsonReport:
     description: The JSON object containing the inconsistencies found in the docs.
   markdownReport:
     description: The markdown report containing the inconsistencies found in the docs.
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
