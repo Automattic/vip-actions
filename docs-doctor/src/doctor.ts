@@ -7,10 +7,9 @@ import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { URL, fileURLToPath } from 'url';
 import TurndownService from 'turndown';
 import * as xml2js from 'xml2js';
-import { URL } from 'url';
 
 const PR_COMMENT_HEADER = `## 🤖 AI-Generated Docs Inconsistencies Report`;
 
@@ -171,10 +170,10 @@ export class Doctor {
 
 	private buildPRComment( relevantInconsistencies: Inconsistency[] ) {
 		const relevantInconsistenciesByURL = relevantInconsistencies.reduce( ( acc, obj ) => {
-			if ( ! acc[ obj.url ] ) acc[ obj.url ] = [];
+			acc[ obj.url ] ??= [];
 			acc[ obj.url ].push( obj );
 			return acc;
-		}, {} as { [ url: string ]: Inconsistency[] } );
+		}, {} as Record< string, Inconsistency[] > );
 
 		let comment = '';
 
@@ -478,15 +477,15 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 			const result = await xml2js.parseStringPromise( xmlData );
 
 			const urls: string[] = [];
-			if ( result.urlset && result.urlset.url ) {
+			if ( result.urlset?.url ) {
 				result.urlset.url.forEach( ( entry: { loc: string[] } ) => {
-					if ( entry.loc && entry.loc[ 0 ] ) {
+					if ( entry.loc?.[ 0 ] ) {
 						urls.push( entry.loc[ 0 ] );
 					}
 				} );
-			} else if ( result.sitemapindex && result.sitemapindex.sitemap ) {
+			} else if ( result.sitemapindex?.sitemap ) {
 				for ( const sitemapEntry of result.sitemapindex.sitemap ) {
-					if ( sitemapEntry.loc && sitemapEntry.loc[ 0 ] ) {
+					if ( sitemapEntry.loc?.[ 0 ] ) {
 						const nestedUrls = await this.getUrlsFromSitemap( sitemapEntry.loc[ 0 ] );
 						urls.push( ...nestedUrls );
 					}
