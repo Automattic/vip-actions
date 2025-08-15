@@ -259,6 +259,7 @@ export class Doctor {
 </documentation>`;
 
 		const result = await aiSDK.generateObject( {
+			temperature: 0,
 			model: this.openAIProvider.languageModel( this.openAIModel ),
 			schema: z.object( {
 				inconsistencies: z.array(
@@ -324,6 +325,7 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
     ]]></urls>`;
 
 		const result = await aiSDK.generateObject( {
+			temperature: 0,
 			model: this.openAIProvider.languageModel( this.openAIModel ),
 			schema: z.object( {
 				urls: z.array(

@@ -28,14 +28,9 @@ Your analysis must follow these steps:
 
 **Example Output:**
 {
-"urls: [
-{"url": "https://docs.example.com/features/deployments/rollbacks", "weight": 0.9},
-{"url": "https://docs.example.com/features/deployments", "weight": 0.6},
-{"url": "https://docs.example.com/reference/cli", "weight": 0.2}
-}
-"urls": [
-{"url": "https://docs.example.com/features/deployments/rollbacks", "weight": 0.9},
-{"url": "https://docs.example.com/features/deployments", "weight": 0.6},
-{"url": "https://docs.example.com/reference/cli", "weight": 0.2}
-]
+    "urls": [
+        {"url": "https://docs.example.com/features/deployments/rollbacks", "weight": 0.9},
+        {"url": "https://docs.example.com/features/deployments", "weight": 0.6},
+        {"url": "https://docs.example.com/reference/cli", "weight": 0.2}
+    ]
 }
