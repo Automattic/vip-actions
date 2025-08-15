@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import TurndownService from 'turndown';
 
 const PR_COMMENT_HEADER = `## 🤖 AI-Generated Docs Inconsistencies Report`;
 
@@ -353,18 +354,18 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 	}
 
 	private async getPageContentParsed( url: string ) {
-		const scrapeResult = await this.firecrawlClient.scrapeUrl( url, {
-			formats: [ 'markdown' ],
-			onlyMainContent: true,
-			parsePDF: false,
-			maxAge: 14400000,
-		} );
+		const turndownService = new TurndownService();
 
-		if ( scrapeResult.error || ! scrapeResult.success ) {
-			throw new Error( `Error scraping URL: ${ scrapeResult.error }` );
+		const response = await fetch( url );
+		if ( ! response.ok ) {
+			throw new Error( `Failed to fetch documentation page: ${ response.statusText }` );
 		}
 
-		return scrapeResult.markdown ?? '';
+		const markdownContent = turndownService.turndown( await response.text() );
+
+		console.log( markdownContent );
+
+		return markdownContent;
 	}
 
 	private async findExistingBotComment(): Promise< number | null > {
