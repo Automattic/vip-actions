@@ -38,7 +38,7 @@ export class Doctor {
 	private readonly url: string;
 	private readonly openAIProvider: OpenAIProvider;
 	private readonly openAIModel: string;
-	private readonly firecrawlClient: FirecrawlApp;
+	private readonly firecrawlClient?: FirecrawlApp;
 	private readonly octokit: ReturnType< typeof github.getOctokit >;
 	private readonly confidenceThreshold: number;
 	private readonly postComment: boolean;
@@ -59,6 +59,7 @@ export class Doctor {
 		const openAIToken = core.getInput( 'openai_api_key', { required: true } );
 		const githubApiToken = env.GITHUB_TOKEN;
 		const firecrawlApiKey = core.getInput( 'firecrawl_api_key' ) || env.FIRECRAWL_API_KEY;
+		const urlsFile = core.getInput( 'urls_file' );
 		this.confidenceThreshold = Number( core.getInput( 'confidence_threshold' ) ) || 0.8;
 
 		this.openAIModel = core.getInput( 'openai_model' ) || 'gpt-4o-mini';
@@ -69,8 +70,8 @@ export class Doctor {
 			throw new Error( 'Missing OpenAI API key' );
 		}
 
-		if ( ! firecrawlApiKey ) {
-			throw new Error( 'Missing FireCrawl API key' );
+		if ( ! urlsFile && ! firecrawlApiKey ) {
+			throw new Error( 'Either urls_file or firecrawl_api_key must be provided' );
 		}
 
 		if ( ! githubApiToken ) {
@@ -83,7 +84,9 @@ export class Doctor {
 
 		this.octokit = github.getOctokit( githubApiToken );
 
-		this.firecrawlClient = new FirecrawlApp( { apiKey: firecrawlApiKey } );
+		if ( firecrawlApiKey ) {
+			this.firecrawlClient = new FirecrawlApp( { apiKey: firecrawlApiKey } );
+		}
 
 		const issue = github.context.issue;
 
@@ -312,6 +315,26 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 	}
 
 	private async getURLs( domain: string ) {
+		const urlsFile = core.getInput( 'urls_file' );
+
+		if ( urlsFile ) {
+			try {
+				const fileContent = readFileSync( urlsFile, 'utf-8' );
+				return fileContent
+					.split( '\n' )
+					.map( line => line.trim() )
+					.filter( line => line.length > 0 && line.startsWith( 'http' ) );
+			} catch ( error ) {
+				throw new Error( `Error reading URLs file: ${ error }` );
+			}
+		}
+
+		if ( ! this.firecrawlClient ) {
+			throw new Error(
+				'Firecrawl client not initialized. Please provide either urls_file or firecrawl_api_key.'
+			);
+		}
+
 		const mapResult = await this.firecrawlClient.mapUrl( domain, {
 			includeSubdomains: true,
 		} );

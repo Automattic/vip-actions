@@ -17,7 +17,11 @@ inputs:
 
   firecrawl_api_key:
     description: The Firecrawl API key to use for crawling the docs site
-    required: true
+    required: false
+
+  urls_file:
+    description: Path to a text file containing URLs (one per line). If provided, firecrawl_api_key is not required
+    required: false
 
   confidence_threshold:
     description: The confidence threshold for the AI
