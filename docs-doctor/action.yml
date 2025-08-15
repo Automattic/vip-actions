@@ -23,6 +23,10 @@ inputs:
     description: Path to a text file containing URLs (one per line). If provided, firecrawl_api_key is not required
     required: false
 
+  sitemap_url:
+    description: URL to a sitemap.xml file. If provided, takes priority over urls_file and firecrawl_api_key
+    required: false
+
   confidence_threshold:
     description: The confidence threshold for the AI
     required: false

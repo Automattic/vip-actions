@@ -9,6 +9,7 @@ import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import TurndownService from 'turndown';
+import * as xml2js from 'xml2js';
 
 const PR_COMMENT_HEADER = `## 🤖 AI-Generated Docs Inconsistencies Report`;
 
@@ -38,10 +39,15 @@ export class Doctor {
 	private readonly url: string;
 	private readonly openAIProvider: OpenAIProvider;
 	private readonly openAIModel: string;
-	private readonly firecrawlClient?: FirecrawlApp;
 	private readonly octokit: ReturnType< typeof github.getOctokit >;
 	private readonly confidenceThreshold: number;
 	private readonly postComment: boolean;
+
+	// URL list providers
+	private readonly sitemapURL?: string;
+	private readonly urlsFile?: string;
+	private readonly firecrawlClient?: FirecrawlApp;
+
 
 	private readonly prContext: {
 		owner: string;
@@ -59,7 +65,8 @@ export class Doctor {
 		const openAIToken = core.getInput( 'openai_api_key', { required: true } );
 		const githubApiToken = env.GITHUB_TOKEN;
 		const firecrawlApiKey = core.getInput( 'firecrawl_api_key' ) || env.FIRECRAWL_API_KEY;
-		const urlsFile = core.getInput( 'urls_file' );
+		this.urlsFile = core.getInput( 'urls_file' );
+		this.sitemapURL = core.getInput( 'sitemap_url' );
 		this.confidenceThreshold = Number( core.getInput( 'confidence_threshold' ) ) || 0.8;
 
 		this.openAIModel = core.getInput( 'openai_model' ) || 'gpt-4o-mini';
@@ -70,8 +77,8 @@ export class Doctor {
 			throw new Error( 'Missing OpenAI API key' );
 		}
 
-		if ( ! urlsFile && ! firecrawlApiKey ) {
-			throw new Error( 'Either urls_file or firecrawl_api_key must be provided' );
+		if ( ! this.sitemapURL && ! this.urlsFile && ! firecrawlApiKey ) {
+			throw new Error( 'Either sitemap_url, urls_file or firecrawl_api_key must be provided' );
 		}
 
 		if ( ! githubApiToken ) {
@@ -315,11 +322,13 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 	}
 
 	private async getURLs( domain: string ) {
-		const urlsFile = core.getInput( 'urls_file' );
+		if ( this.sitemapURL ) {
+			return await this.getUrlsFromSitemap( this.sitemapURL );
+		}
 
-		if ( urlsFile ) {
+		if ( this.urlsFile ) {
 			try {
-				const fileContent = readFileSync( urlsFile, 'utf-8' );
+				const fileContent = readFileSync( this.urlsFile, 'utf-8' );
 				return fileContent
 					.split( '\n' )
 					.map( line => line.trim() )
@@ -331,7 +340,7 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 
 		if ( ! this.firecrawlClient ) {
 			throw new Error(
-				'Firecrawl client not initialized. Please provide either urls_file or firecrawl_api_key.'
+				'Firecrawl client not initialized. Please provide either sitemap_url, urls_file or firecrawl_api_key.'
 			);
 		}
 
@@ -384,11 +393,7 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 			throw new Error( `Failed to fetch documentation page: ${ response.statusText }` );
 		}
 
-		const markdownContent = turndownService.turndown( await response.text() );
-
-		console.log( markdownContent );
-
-		return markdownContent;
+		return turndownService.turndown( await response.text() );
 	}
 
 	private async findExistingBotComment(): Promise< number | null > {
@@ -403,6 +408,35 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 		);
 
 		return botComment ? botComment.id : null;
+	}
+
+	private async getUrlsFromSitemap( sitemapUrl: string ) {
+		const response = await fetch( sitemapUrl );
+
+		if ( ! response.ok ) {
+			throw new Error( `Failed to fetch sitemap: ${ response.statusText }` );
+		}
+
+		const xmlData = await response.text();
+
+		const result = await xml2js.parseStringPromise( xmlData );
+
+		const urls: string[] = [];
+		if ( result.urlset && result.urlset.url ) {
+			result.urlset.url.forEach( ( entry: { loc: string[] } ) => {
+				if ( entry.loc && entry.loc[ 0 ] ) {
+					urls.push( entry.loc[ 0 ] );
+				}
+			} );
+		} else if ( result.sitemapindex && result.sitemapindex.sitemap ) {
+			for ( const sitemapEntry of result.sitemapindex.sitemap ) {
+				if ( sitemapEntry.loc && sitemapEntry.loc[ 0 ] ) {
+					const nestedUrls = await this.getUrlsFromSitemap( sitemapEntry.loc[ 0 ] );
+					urls.push( ...nestedUrls );
+				}
+			}
+		}
+		return urls;
 	}
 
 	private getSeverityEmoji( severity: string ): string {
