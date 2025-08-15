@@ -7,6 +7,7 @@ function getParams() {
 	const what = getInput( 'analyze' ) || 'diff';
 	const model = getInput( 'model' ) || 'gpt-4-turbo';
 	const description = getInput( 'pr_description' ) ?? '';
+	const prompt = getInput( 'prompt' ) ?? '';
 	const token = getInput( 'token' ) || env.GITHUB_TOKEN;
 	const openAiKey = getInput( 'openai_api_key' ) || env.OPENAI_API_KEY;
 
@@ -33,6 +34,7 @@ function getParams() {
 		what,
 		model,
 		description,
+		prompt,
 	};
 }
 
@@ -112,9 +114,10 @@ async function getPullRequestDiff( octokit, owner, repo, prNumber, format ) {
  * @param {number}                        prNumber
  * @param {string}                        what
  * @param {string}                        overriddenDescription
+ * @param {string}                        overriddenPrompt
  * @return {Promise<string>} Prompt
  */
-async function getPrompt( octokit, owner, repo, prNumber, what, overriddenDescription ) {
+async function getPrompt( octokit, owner, repo, prNumber, what, overriddenDescription, overriddenPrompt ) {
 	const template = `You are assisting in generating a changelog entry from a pull request.
 Given the pull request title, description, and diff, write a single Markdown list item summarizing the change.
 
@@ -147,7 +150,9 @@ Input:
 		}
 	}
 
-	return `${ template }\n${ title }\n\n${ description }\n\n${ info }`;
+	const instructions = overriddenPrompt || template;
+
+	return `${ instructions }\n${ title }\n\n${ description }\n\n${ info }`;
 }
 
 /**
@@ -184,18 +189,18 @@ async function askOpenAI( prompt, openAiKey, model ) {
 
 async function run() {
 	try {
-		const { prNumber, token, openAiKey, what, model, description } = getParams();
+		const { prNumber, token, openAiKey, what, model, description, prompt: overriddenPrompt } = getParams();
 		const { owner, repo } = context.repo;
 		const octokit = getOctokit( token );
 
-		let prompt = await getPrompt( octokit, owner, repo, prNumber, what, description );
+		let prompt = await getPrompt( octokit, owner, repo, prNumber, what, description, overriddenPrompt );
 
 		let changelogEntry = await askOpenAI( prompt, openAiKey, model );
 		if ( ! changelogEntry ) {
 			warning( 'No content returned from OpenAI' );
 			if ( what !== 'commits' ) {
 				debug( 'Retrying in `commits` mode' );
-				prompt = await getPrompt( octokit, owner, repo, prNumber, 'commits', description );
+				prompt = await getPrompt( octokit, owner, repo, prNumber, 'commits', description, overriddenPrompt );
 				debug( `Generated prompt: ${ prompt }` );
 				changelogEntry = await askOpenAI( prompt, openAiKey, model );
 				if ( ! changelogEntry ) {

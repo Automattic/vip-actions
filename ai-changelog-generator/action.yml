@@ -35,6 +35,9 @@ inputs:
     description: Whether to post the generated changelog entry as a comment.
     required: false
     default: 'true'
+  prompt:
+    description: Override the prompt used for generating the changelog entry.
+    required: false
 outputs:
   changelog_entry:
     description: The generated changelog entry.
@@ -49,6 +52,7 @@ runs:
         issue-number: ${{ inputs.pr_number }}
         reactions: 'eyes'
         comment-id: ${{ inputs.comment_id }}
+        token: ${{ inputs.token }}
 
     - name: Check if user has write access
       if: inputs.user_login
@@ -76,6 +80,11 @@ runs:
       with:
         pr_number: ${{ inputs.pr_number }}
         openai_api_key: ${{ inputs.openai_api_key }}
+        token: ${{ inputs.token }}
+        prompt: ${{ inputs.prompt }}
+        analyze: ${{ inputs.analyze }}
+        model: ${{ inputs.model }}
+        pr_description: ${{ inputs.pr_description }}
 
     - name: Post Changelog Comment
       if: >
@@ -91,6 +100,7 @@ runs:
           ${{ steps.changelog.outputs.changelog_entry }}
 
         edit-mode: replace
+        token: ${{ inputs.token }}
 
     - name: Set status (success)
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
@@ -100,6 +110,7 @@ runs:
         reactions: 'hooray'
         comment-id: ${{ inputs.comment_id }}
         reactions-edit-mode: replace
+        token: ${{ inputs.token }}
 
     - name: Set status (failure)
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
@@ -109,3 +120,4 @@ runs:
         reactions: '-1'
         comment-id: ${{ inputs.comment_id }}
         reactions-edit-mode: replace
+        token: ${{ inputs.token }}
