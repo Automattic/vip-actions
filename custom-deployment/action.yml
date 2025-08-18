@@ -45,11 +45,11 @@ runs:
       shell: bash
 
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       if: ${{ inputs.SKIP_CHECKOUT != 'true' }}
 
     - name: Setup Node
-      uses: actions/setup-node@v4.0.2
+      uses: actions/setup-node@v4.4.0
       with:
         node-version: "v20.11.1"
 
