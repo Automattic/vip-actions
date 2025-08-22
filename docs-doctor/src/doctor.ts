@@ -124,7 +124,11 @@ export class Doctor {
 				this.prContext.number
 			);
 
-			core.debug( `Pull Request Info: ${ JSON.stringify( prInfo, null, 2 ) }` );
+			core.debug(
+				`Pull Request Info (${ this.prContext.owner }/${ this.prContext.repo } - ${
+					this.prContext.number
+				}): ${ JSON.stringify( prInfo ) }`
+			);
 
 			const relatedDocs = await this.getRelatedDocsURLs( prInfo );
 			if ( relatedDocs.length === 0 ) {
