@@ -99999,11 +99999,8 @@ ${urls.map(url => `<url>${url}</url>`).join('\n')}
             owner,
             repo,
             pull_number: prNumber,
-            mediaType: {
-                format: 'diff',
-            },
         });
-        const { data: prDiff } = await this.octokit.rest.pulls.get({
+        const { data: diff } = await this.octokit.rest.pulls.get({
             owner,
             repo,
             pull_number: prNumber,
@@ -100014,7 +100011,7 @@ ${urls.map(url => `<url>${url}</url>`).join('\n')}
         return {
             title: prInfo.title,
             description: prInfo.body ?? '',
-            diff: prDiff,
+            diff: diff,
         };
     }
     async getPageContentParsed(url) {
