@@ -215,20 +215,19 @@ export class Doctor {
 		const existingCommentId = await this.findExistingBotComment();
 
 		if ( existingCommentId ) {
-			await this.octokit.rest.issues.updateComment( {
+			await this.octokit.rest.issues.deleteComment( {
 				comment_id: existingCommentId,
 				owner: this.prContext.owner,
 				repo: this.prContext.repo,
-				body: commentBody,
-			} );
-		} else {
-			await this.octokit.rest.issues.createComment( {
-				issue_number: this.prContext.number,
-				owner: this.prContext.owner,
-				repo: this.prContext.repo,
-				body: commentBody,
 			} );
 		}
+
+		await this.octokit.rest.issues.createComment( {
+			issue_number: this.prContext.number,
+			owner: this.prContext.owner,
+			repo: this.prContext.repo,
+			body: commentBody,
+		} );
 	}
 
 	private async getInconsistenciesForURL(

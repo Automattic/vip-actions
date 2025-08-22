@@ -99789,7 +99789,7 @@ class Doctor {
             throw new Error('Invalid Sitemap URL format or protocol not allowed');
         }
         this.confidenceThreshold = Number(lib_core.getInput('confidence_threshold')) || 0.8;
-        this.openAIModel = lib_core.getInput('openai_model') || 'gpt-4o-mini';
+        this.openAIModel = lib_core.getInput('openai_model') || 'gpt-4o';
         this.postComment = lib_core.getBooleanInput('post_comment') || false;
         if (!openAIToken) {
             throw new Error('Missing OpenAI API key');
@@ -99883,21 +99883,18 @@ class Doctor {
         const commentBody = this.buildPRComment(relevantInconsistencies);
         const existingCommentId = await this.findExistingBotComment();
         if (existingCommentId) {
-            await this.octokit.rest.issues.updateComment({
+            await this.octokit.rest.issues.deleteComment({
                 comment_id: existingCommentId,
                 owner: this.prContext.owner,
                 repo: this.prContext.repo,
-                body: commentBody,
             });
         }
-        else {
-            await this.octokit.rest.issues.createComment({
-                issue_number: this.prContext.number,
-                owner: this.prContext.owner,
-                repo: this.prContext.repo,
-                body: commentBody,
-            });
-        }
+        await this.octokit.rest.issues.createComment({
+            issue_number: this.prContext.number,
+            owner: this.prContext.owner,
+            repo: this.prContext.repo,
+            body: commentBody,
+        });
     }
     async getInconsistenciesForURL(prInfo, url) {
         const docsPageContent = await this.getPageContentParsed(url);
