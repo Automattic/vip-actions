@@ -7,7 +7,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist --source-map",
+    "build": "ncc build src/index.ts -o dist --source-map --license ../LICENSE",
     "local-action": "npx @github/local-action . src/main.ts .env",
     "format": "prettier '**/*.(js|json|jsx|md|ts|tsx|yml|yaml)' --write"
   },
