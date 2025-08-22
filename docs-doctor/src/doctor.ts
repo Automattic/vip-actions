@@ -74,7 +74,7 @@ export class Doctor {
 
 		this.confidenceThreshold = Number( core.getInput( 'confidence_threshold' ) ) || 0.8;
 
-		this.openAIModel = core.getInput( 'openai_model' ) || 'gpt-4o-mini';
+		this.openAIModel = core.getInput( 'openai_model' ) || 'gpt-4o';
 
 		this.postComment = core.getBooleanInput( 'post_comment' ) || false;
 

@@ -40,7 +40,7 @@ inputs:
   openai_model:
     description: The OpenAI model to use for generating the docs report.
     required: false
-    default: gpt-4o-mini
+    default: gpt-4o
 
   execution_timeout:
     description: Maximum execution time in seconds (default 600 seconds / 10 minutes)
