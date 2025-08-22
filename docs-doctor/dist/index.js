@@ -99823,6 +99823,7 @@ class Doctor {
         }, executionTimeoutMs);
         try {
             const prInfo = await this.getPullRequestInfo(this.prContext.owner, this.prContext.repo, this.prContext.number);
+            lib_core.debug(`Pull Request Info: ${JSON.stringify(prInfo, null, 2)}`);
             const relatedDocs = await this.getRelatedDocsURLs(prInfo);
             if (relatedDocs.length === 0) {
                 lib_core.info('No related documentation pages found for this PR.');
@@ -99898,6 +99899,7 @@ class Doctor {
     }
     async getInconsistenciesForURL(prInfo, url) {
         const docsPageContent = await this.getPageContentParsed(url);
+        lib_core.debug(`Parsed documentation content from ${url}: ${docsPageContent}`);
         const userPrompt = 'Review the documentation content below for inaccuracies based on the provided Pull Request. Identify and report all inconsistencies.\n' +
             `<pull-request><title>${prInfo.title}</title><description>${prInfo.description}</description></pull-request>\n` +
             `<changes>\n${prInfo.diff}\n</changes>\n\n\n` +
@@ -99941,6 +99943,7 @@ class Doctor {
     }
     async getRelatedDocsURLs(prInfo) {
         const urls = await this.getURLs(this.url);
+        lib_core.info(`Found ${urls.length} URLs to analyze from the sitemap or file.`);
         const userPrompt = 'Analyze the following Pull Request and sitemap to identify relevant documentation URLs:\n' +
             `<pull-request><title>${prInfo.title}</title><description>${prInfo.description}</description></pull-request>\n` +
             `<changes><![CDATA[

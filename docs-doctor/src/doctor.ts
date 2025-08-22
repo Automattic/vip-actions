@@ -124,6 +124,8 @@ export class Doctor {
 				this.prContext.number
 			);
 
+			core.debug( `Pull Request Info: ${ JSON.stringify( prInfo, null, 2 ) }` );
+
 			const relatedDocs = await this.getRelatedDocsURLs( prInfo );
 			if ( relatedDocs.length === 0 ) {
 				core.info( 'No related documentation pages found for this PR.' );
@@ -236,6 +238,8 @@ export class Doctor {
 	): Promise< Inconsistency[] > {
 		const docsPageContent = await this.getPageContentParsed( url );
 
+		core.debug( `Parsed documentation content from ${ url }: ${ docsPageContent }` );
+
 		const userPrompt =
 			'Review the documentation content below for inaccuracies based on the provided Pull Request. Identify and report all inconsistencies.\n' +
 			`<pull-request><title>${ prInfo.title }</title><description>${ prInfo.description }</description></pull-request>\n` +
@@ -298,6 +302,8 @@ export class Doctor {
 
 	private async getRelatedDocsURLs( prInfo: PullRequestInfo ): Promise< RelatedDocsURL[] > {
 		const urls = await this.getURLs( this.url );
+
+		core.info( `Found ${ urls.length } URLs to analyze from the sitemap or file.` );
 
 		const userPrompt =
 			'Analyze the following Pull Request and sitemap to identify relevant documentation URLs:\n' +
