@@ -191,7 +191,6 @@ export class Doctor {
 
 			relevantInconsistenciesByURL[ url ].forEach( inconsistency => {
 				comment += `- **Inconsistency**: ${ inconsistency.inconsistency }\n`;
-				comment += `  - **Suggested Fix**: ${ inconsistency.suggested_fix }\n`;
 				comment += `  - **Severity**: ${ this.getSeverityEmoji( inconsistency.severity ) } ${
 					inconsistency.severity
 				}\n`;
