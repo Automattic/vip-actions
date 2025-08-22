@@ -6,10 +6,10 @@ import * as aiSDK from 'ai';
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { URL, fileURLToPath } from 'url';
+import { URL } from 'url';
 import TurndownService from 'turndown';
 import * as xml2js from 'xml2js';
+import { technicalAccuracyReviewerPrompt, technicalContentUrlFinderPrompt } from './ai-prompts.js';
 
 const PR_COMMENT_HEADER = `## 🤖 AI-Generated Docs Inconsistencies Report`;
 
@@ -35,8 +35,6 @@ interface Inconsistency {
 	severity: 'High' | 'Medium' | 'Low';
 	confidence: number;
 }
-
-const __dirname = dirname( fileURLToPath( import.meta.url ) );
 
 export class Doctor {
 	private readonly url: string;
@@ -239,11 +237,6 @@ export class Doctor {
 	): Promise< Inconsistency[] > {
 		const docsPageContent = await this.getPageContentParsed( url );
 
-		const systemPrompt = readFileSync(
-			join( __dirname, 'prompts', 'technical-accuracy-reviewer.md' ),
-			'utf-8'
-		);
-
 		const userPrompt =
 			'Review the documentation content below for inaccuracies based on the provided Pull Request. Identify and report all inconsistencies.\n' +
 			`<pull-request><title>${ prInfo.title }</title><description>${ prInfo.description }</description></pull-request>\n` +
@@ -294,7 +287,7 @@ export class Doctor {
 					} )
 				),
 			} ),
-			system: systemPrompt,
+			system: technicalAccuracyReviewerPrompt,
 			prompt: userPrompt,
 		} );
 
@@ -306,11 +299,6 @@ export class Doctor {
 
 	private async getRelatedDocsURLs( prInfo: PullRequestInfo ): Promise< RelatedDocsURL[] > {
 		const urls = await this.getURLs( this.url );
-
-		const systemPrompt = readFileSync(
-			join( __dirname, 'prompts', 'technical-content-url-finder.md' ),
-			'utf-8'
-		);
 
 		const userPrompt =
 			'Analyze the following Pull Request and sitemap to identify relevant documentation URLs:\n' +
@@ -334,7 +322,7 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 					} )
 				),
 			} ),
-			system: systemPrompt,
+			system: technicalContentUrlFinderPrompt,
 			prompt: userPrompt,
 		} );
 
