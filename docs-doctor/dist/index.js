@@ -99812,6 +99812,7 @@ class Doctor {
             throw new Error('Invalid URL format or protocol not allowed');
         }
         const openAIToken = lib_core.getInput('openai_api_key', { required: true });
+        const prNumber = lib_core.getInput('pr_number', { required: true });
         const githubApiToken = external_node_process_namespaceObject.env.GITHUB_TOKEN;
         const firecrawlApiKey = lib_core.getInput('firecrawl_api_key') || external_node_process_namespaceObject.env.FIRECRAWL_API_KEY;
         this.urlsFile = lib_core.getInput('urls_file');
@@ -99838,11 +99839,10 @@ class Doctor {
         if (firecrawlApiKey) {
             this.firecrawlClient = new FirecrawlApp({ apiKey: firecrawlApiKey });
         }
-        const issue = github.context.issue;
         this.prContext = {
-            owner: issue.owner,
-            repo: issue.repo,
-            number: issue.number,
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            number: Number(prNumber),
         };
     }
     async run() {

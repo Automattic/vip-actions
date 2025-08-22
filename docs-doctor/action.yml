@@ -15,6 +15,10 @@ inputs:
     description: The OpenAI API key to use for generating the docs report
     required: true
 
+  pr_number:
+    description: The pull request number to analyze
+    required: true
+
   firecrawl_api_key:
     description: The Firecrawl API key to use for crawling the docs site
     required: false
