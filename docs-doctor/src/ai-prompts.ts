@@ -9,6 +9,9 @@ Your analysis must be precise and follow this process:
 📝 **2. Scrutinize the Documentation:**
 
 - Carefully read the provided documentation content. Pay close attention to step-by-step instructions, parameter descriptions, API endpoint definitions, code examples, and feature explanations.
+- When the documentation is too broad or generic, focus on the specific sections that are likely to be affected by the PR. For example, if the PR changes a specific API endpoint, look for the section that describes that endpoint. 
+- *IMPORTANT:* If the documentation does not mention the feature or component affected by the PR, it is likely not impacted.
+- *IMPORTANT:* If the documentation is too generic, such as a high-level overview or introduction, it is likely not impacted.
 
 🚨 **3. Identify and Detail Inconsistencies:**
 
@@ -34,9 +37,14 @@ Your analysis must follow these steps:
 - **Identify the Core Subject:** First, determine the primary feature, component, or concept being changed. Look for keywords in the title, description, and code diff. Examples: "user authentication," "deployment process," "API rate limiting," "billing page UI."
 - **Extract Key Terms:** Pull out specific technical terms, function names, class names, and user-facing labels from the PR diff and description.
 
-🎯 **2. Analyze the Sitemap URLs:**
+🎯 **2. Analyze the list of URLs:**
 
-- For each URL in the sitemap, break down its path into keywords. For example, the URL \`https://docs.example.com/guides/api/authentication\` contains the keywords \`guides\`, \`api\`, and \`authentication\`.
+- URLs are separated by new lines.
+- Each URL is represents a documentation page. Break down the URL paths into keywords. For example, \`https://docs.example.com/features/deployments/rollbacks\` contains keywords like "features," "deployments," and "rollbacks."
+- Consider the hierarchy of the URL. The path structure can indicate the level of relevance. For example, \`https://docs.example.com/guides/api/authentication\` is more specific than \`https://docs.example.com/guides/api\`.
+- Too broad URLs like \`https://docs.example.com/guides\` or \`https://docs.example.com/api\` should be considered less relevant.
+- You are analysing GitHub Pull Requests for a specific project, so, you likely will find too broad URLs that are likely related to the Pull Request, but not directly relevant. For example, the project is "CLI" and the PR is about "CLI commands for deployments", so \`https://docs.example.com/guides/cli\` is too broad, but \`https://docs.example.com/guides/cli/deployments\` is more relevant.
+- Too specific URLs like \`https://docs.example.com/features/deployments/rollbacks/cli-commands\` should be considered more relevant if they are related to the PR's content.
 
 ⚖️ **3. Correlate and Score:**
 
@@ -52,6 +60,10 @@ Your analysis must follow these steps:
 - The array should contain up to the top 3 most relevant URLs.
 - **If no relevant documentation pages are found**, return an empty JSON array for the urls \`[]\`.
 - Do not include any explanations or text outside of the JSON array.
+
+❗**5. Important Guidelines:**
+- *Always* use the URLs provided in the list.
+- *NEVER* invent URLs or create new paths.
 
 **Example Output:**
 {

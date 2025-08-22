@@ -36,6 +36,8 @@ interface Inconsistency {
 	confidence: number;
 }
 
+class PageNotFoundError extends Error {}
+
 export class Doctor {
 	private readonly url: string;
 	private readonly openAIProvider: OpenAIProvider;
@@ -124,12 +126,6 @@ export class Doctor {
 				this.prContext.number
 			);
 
-			core.debug(
-				`Pull Request Info (${ this.prContext.owner }/${ this.prContext.repo } - ${
-					this.prContext.number
-				}): ${ JSON.stringify( prInfo ) }`
-			);
-
 			const relatedDocs = await this.getRelatedDocsURLs( prInfo );
 			if ( relatedDocs.length === 0 ) {
 				core.info( 'No related documentation pages found for this PR.' );
@@ -154,11 +150,20 @@ export class Doctor {
 			for ( const doc of relevantRelatedDocs ) {
 				core.info( `Reviewing documentation page: ${ doc.url }` );
 
-				const inconsistenciesForURL = await this.getInconsistenciesForURL( prInfo, doc.url );
+				try {
+					const inconsistenciesForURL = await this.getInconsistenciesForURL( prInfo, doc.url );
 
-				inconsistencies.push(
-					...inconsistenciesForURL.filter( d => d.confidence >= this.confidenceThreshold )
-				);
+					inconsistencies.push(
+						...inconsistenciesForURL.filter( d => d.confidence >= this.confidenceThreshold )
+					);
+				} catch ( error ) {
+					if ( error instanceof PageNotFoundError ) {
+						core.warning( `Page not found (404): ${ doc.url }. Probably an AI hallucination when finding URLs.` );
+						continue;
+					}
+
+					throw error;
+				}
 			}
 
 			core.setOutput( 'jsonReport', JSON.stringify( inconsistencies, null, 2 ) );
@@ -241,8 +246,6 @@ export class Doctor {
 		url: string
 	): Promise< Inconsistency[] > {
 		const docsPageContent = await this.getPageContentParsed( url );
-
-		core.debug( `Parsed documentation content from ${ url }: ${ docsPageContent }` );
 
 		const userPrompt =
 			'Review the documentation content below for inaccuracies based on the provided Pull Request. Identify and report all inconsistencies.\n' +
@@ -415,6 +418,10 @@ ${ urls.map( url => `<url>${ url }</url>` ).join( '\n' ) }
 			} );
 
 			if ( ! response.ok ) {
+				if ( response.status === 404 ) {
+					throw new PageNotFoundError( `Page not found: ${ url }` );
+				}
+
 				throw new Error(
 					`Failed to fetch documentation page: ${ response.status } ${ response.statusText }`
 				);
