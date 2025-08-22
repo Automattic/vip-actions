@@ -1,0 +1,62 @@
+name: Docs Doctor
+description: GitHub Action to analyze documentation sites for inconsistencies and issues using AI.
+author: Automattic
+
+branding:
+  icon: file-text
+  color: black
+
+inputs:
+  url:
+    description: The URL to the docs site
+    required: true
+
+  openai_api_key:
+    description: The OpenAI API key to use for generating the docs report
+    required: true
+
+  pr_number:
+    description: The pull request number to analyze
+    required: true
+
+  firecrawl_api_key:
+    description: The Firecrawl API key to use for crawling the docs site
+    required: false
+
+  urls_file:
+    description: Path to a text file containing URLs (one per line). If provided, firecrawl_api_key is not required
+    required: false
+
+  sitemap_url:
+    description: URL to a sitemap.xml file. If provided, takes priority over urls_file and firecrawl_api_key
+    required: false
+
+  confidence_threshold:
+    description: The confidence threshold for the AI
+    required: false
+    default: '0.8'
+
+  post_comment:
+    description: Whether to post the generated docs report as a comment.
+    required: false
+    default: 'true'
+
+  openai_model:
+    description: The OpenAI model to use for generating the docs report.
+    required: false
+    default: gpt-5
+
+  execution_timeout:
+    description: Maximum execution time in seconds (default 600 seconds / 10 minutes)
+    required: false
+    default: '600'
+
+outputs:
+  jsonReport:
+    description: The JSON object containing the inconsistencies found in the docs.
+  markdownReport:
+    description: The markdown report containing the inconsistencies found in the docs.
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
