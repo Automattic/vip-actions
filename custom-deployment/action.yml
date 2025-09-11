@@ -51,7 +51,8 @@ runs:
     - name: Setup Node
       uses: actions/setup-node@v4.4.0
       with:
-        node-version: "v20.11.1"
+        node-version: lts/*
+        cache: npm
 
     - name: Install VIP CLI
       run: |
