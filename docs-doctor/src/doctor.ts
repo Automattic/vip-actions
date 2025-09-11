@@ -67,7 +67,7 @@ export class Doctor {
 		const openAIToken = core.getInput( 'openai_api_key', { required: true } );
 		const prNumber = core.getInput( 'pr_number', { required: true } );
 
-		const githubApiToken = env.GITHUB_TOKEN;
+		const githubApiToken = core.getInput( 'github_token' ) || env.GITHUB_TOKEN;
 		const firecrawlApiKey = core.getInput( 'firecrawl_api_key' ) || env.FIRECRAWL_API_KEY;
 		this.urlsFile = core.getInput( 'urls_file' );
 		this.sitemapURL = core.getInput( 'sitemap_url' );

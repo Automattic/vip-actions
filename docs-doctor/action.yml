@@ -51,6 +51,11 @@ inputs:
     required: false
     default: '600'
 
+  github_token:
+    description: GitHub token
+    required: false
+    default: ${{ github.token }}
+
 outputs:
   jsonReport:
     description: The JSON object containing the inconsistencies found in the docs.
