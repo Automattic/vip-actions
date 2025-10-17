@@ -3,6 +3,10 @@
 name: Publish package to npm
 description: This action automates various aspects of publishing a package to the npm registry including running tests, versioning, and tagging.
 inputs:
+  USE_TRUSTED_PUBLISHING:
+    description: 'Is this package configured to use the npm OIDC-based Trusted Publishing feature?'
+    required: false
+    default: 'false'
   NPM_TOKEN:
     description: 'The npm token used to publish the package.'
     required: true
@@ -50,6 +54,7 @@ runs:
       # @see https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun
       run: ${{ github.action_path }}/bin/publish.sh
       env:
+        USE_TRUSTED_PUBLISHING: ${{ inputs.USE_TRUSTED_PUBLISHING }}
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
         PR_NUMBER: ${{ github.event.pull_request.number }}

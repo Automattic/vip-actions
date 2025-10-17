@@ -13,6 +13,12 @@ echo_title() {
 	echo "== $1 =="
 }
 
+# Fail if both USE_TRUSTED_PUBLISHING is true and NODE_AUTH_TOKEN is set
+if [ "${USE_TRUSTED_PUBLISHING:-}" = "true" ] && [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+	echo "❌ Cannot use Trusted Publishing with an npm token. Either set USE_TRUSTED_PUBLISHING to false or remove the NODE_AUTH_TOKEN."
+	exit 201
+fi
+
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
 set +o errexit # temporary do not exit on error because grep will exit with error when nothing is found
@@ -53,13 +59,15 @@ REMOTE_VERSION=$(npm view "$LOCAL_NAME" version)
 echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
 
-# Validate npm is logged in and ready
-echo_title "Checking npm auth"
-if ! NPM_USER=$( npm whoami ); then
-	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-	exit 202
+# If not using Trusted Publishing, validate npm is logged in and ready
+if [ "${USE_TRUSTED_PUBLISHING:-}" != "true" ]; then
+	echo_title "Checking npm auth"
+	if ! NPM_USER=$( npm whoami ); then
+		echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
+		exit 202
+	fi
+	echo "✅ Logged in as $NPM_USER and ready to publish"
 fi
-echo "✅ Logged in as $NPM_USER and ready to publish"
 
 # Validate current branch
 echo_title "Checking branch"
@@ -89,7 +97,7 @@ echo "✅ No local changes found"
 # Install
 echo_title "npm ci + test"
 
-# Install dependencies but skip pre/post scripts since our auth token is in place
+# Install dependencies but skip pre/post scripts since auth token may be in place
 npm ci --ignore-scripts
 
 # Run scripts + tests without auth token to prevent malicious access
