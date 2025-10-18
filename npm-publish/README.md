@@ -15,7 +15,7 @@ The `npm-prepare-release` action is meant to be called first and will create a p
 
 ### If Using NPM Trusted Publishing Auth
 
-* `USE_TRUSTED_PUBLISHING`: set to `true` if using [npm's Trusted Publishing auth flow](https://docs.npmjs.com/trusted-publishers). Please do not set or pass the `NPM_TOKEN` or `NODE_AUTH_TOKEN` vars since those will be handled for you.
+* `USE_TRUSTED_PUBLISHING`: set to `true` if using [npm's Trusted Publishing auth flow](https://docs.npmjs.com/trusted-publishers). Please do not set or pass the `NPM_TOKEN` var since it will be handled for you.
 
 ### If Using NPM Token Auth
 
