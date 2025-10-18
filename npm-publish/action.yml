@@ -48,6 +48,12 @@ runs:
         git config --global user.name "WordPress VIP Bot"
         git config --global user.email "<22917138+wpcomvip-bot@users.noreply.github.com>"
 
+    - name: Maybe prep npm token
+      shell: bash
+      if: inputs.USE_TRUSTED_PUBLISHING == false
+      run: echo "NODE_AUTH_TOKEN=${{ inputs.NPM_TOKEN }}" >> $GITHUB_ENV
+
+
     - name: Validate & Publish
       shell: bash
       # Must use `github.action_path` since the script is located in a separate checkout than the calling repo.
@@ -55,7 +61,6 @@ runs:
       run: ${{ github.action_path }}/bin/publish.sh
       env:
         USE_TRUSTED_PUBLISHING: ${{ inputs.USE_TRUSTED_PUBLISHING }}
-        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         PR_HEAD_REF: ${{ github.head_ref }}
