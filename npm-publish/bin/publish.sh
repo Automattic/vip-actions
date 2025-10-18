@@ -13,12 +13,6 @@ echo_title() {
 	echo "== $1 =="
 }
 
-# Fail if both USE_TRUSTED_PUBLISHING is true and NODE_AUTH_TOKEN is set
-if [ "${USE_TRUSTED_PUBLISHING:-}" = "true" ] && [ -n "${NODE_AUTH_TOKEN:-}" ]; then
-	echo "❌ Cannot use Trusted Publishing with an npm token. Either set USE_TRUSTED_PUBLISHING to false or remove the NODE_AUTH_TOKEN."
-	exit 201
-fi
-
 # Determine which files were changed in PR
 echo_title "Determining which files were changed in PR #$PR_NUMBER"
 set +o errexit # temporary do not exit on error because grep will exit with error when nothing is found
