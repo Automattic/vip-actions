@@ -6,7 +6,7 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Verify Full Git Commit Hashes
       shell: bash

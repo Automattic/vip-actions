@@ -45,7 +45,7 @@ runs:
       shell: bash
 
     - name: Checkout Repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       if: ${{ inputs.SKIP_CHECKOUT != 'true' }}
 
     - name: Setup Node
