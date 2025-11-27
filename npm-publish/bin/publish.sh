@@ -26,6 +26,10 @@ else
 	echo "✅ Determined only .json files are changed in PR"
 fi
 
+# Update npm
+echo_title "Updating npm to latest version"
+npm install -g npm
+
 # Determine and validate release type
 echo_title "Determining and validating NPM release type"
 NPM_VERSION_TYPE=$(echo "$PR_HEAD_REF" | awk -F '/' '{print $2}' | awk -F '-' '{print $1}')
@@ -53,13 +57,15 @@ REMOTE_VERSION=$(npm view "$LOCAL_NAME" version)
 echo "✅ Found $LOCAL_NAME $LOCAL_VERSION on branch $LOCAL_BRANCH"
 echo "✅ Published version is $REMOTE_VERSION"
 
-# Validate npm is logged in and ready
-echo_title "Checking npm auth"
-if ! NPM_USER=$( npm whoami ); then
-	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-	exit 202
+# If not using Trusted Publishing, validate npm is logged in and ready
+if [ "${USE_TRUSTED_PUBLISHING:-}" != "true" ]; then
+	echo_title "Checking npm auth"
+	if ! NPM_USER=$( npm whoami ); then
+		echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
+		exit 202
+	fi
+	echo "✅ Logged in as $NPM_USER and ready to publish"
 fi
-echo "✅ Logged in as $NPM_USER and ready to publish"
 
 # Validate current branch
 echo_title "Checking branch"
@@ -89,7 +95,7 @@ echo "✅ No local changes found"
 # Install
 echo_title "npm ci + test"
 
-# Install dependencies but skip pre/post scripts since our auth token is in place
+# Install dependencies but skip pre/post scripts since auth token may be in place
 npm ci --ignore-scripts
 
 # Run scripts + tests without auth token to prevent malicious access
