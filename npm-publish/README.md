@@ -81,7 +81,7 @@ Details: https://docs.npmjs.com/trusted-publishers
 
 1. Generate a scoped token from npmjs.com for your package.
 2. Add the token as a GitHub Actions secret (`Settings` > `Secrets` > `Actions`) called `NPM_TOKEN`.
-3. Pass the token into the publish under via the `with:` param:
+3. Pass the token into the publish action via the `with:` param:
 
 ```
       - uses: Automattic/vip-actions/npm-publish@vX.Y.Z
