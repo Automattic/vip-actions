@@ -44,7 +44,7 @@ runs:
         cache-dependency-path: ${{ format( '{0}/{1}', inputs.working-directory, 'package*.json' ) }}
 
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       id: cache-node-modules
       with:
         path: ${{ inputs.working-directory }}/node_modules
