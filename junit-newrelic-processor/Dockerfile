@@ -1,4 +1,4 @@
-FROM alpine:3.22.2
+FROM alpine:3.23.0
 
 # install libs to process and push xml to newrelic
 RUN apk add --no-cache --update xmlstarlet curl bash sudo
