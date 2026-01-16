@@ -9,13 +9,14 @@ set -o pipefail  # error if piped command fails
 NPM_VERSION_TYPE=
 MAIN_BRANCH="$(LC_ALL=C git remote show origin | awk '/HEAD branch/ {print $NF}')"
 RELEASE_BRANCH="$MAIN_BRANCH"
+BRANCH_PREFIX="release/"
 
 echo_title() {
 	echo ""
 	echo "== $1 =="
 }
 
-while getopts ":t:b:" option;
+while getopts ":t:b:p:" option;
 do
 	case $option in
 		# npm major/minor/patch
@@ -23,6 +24,9 @@ do
 
 		# release branch
 		b) [ -n "$OPTARG" ] && RELEASE_BRANCH=$OPTARG ;;
+
+		# branch prefix
+		p) [ -n "$OPTARG" ] && BRANCH_PREFIX=$OPTARG ;;
 
 		\?) echo "Error: Invalid param / option specified"
 			exit 199 ;;
@@ -75,7 +79,7 @@ echo "✅ Bumped version to $NEW_VERSION (no commit)"
 
 # Checkout branch for release
 echo_title "git checkout branch"
-NEW_BRANCH="release/$NPM_VERSION_TYPE--$RELEASE_BRANCH--$NEW_VERSION-$RANDOM"
+NEW_BRANCH="$BRANCH_PREFIX$NPM_VERSION_TYPE--$RELEASE_BRANCH--$NEW_VERSION-$RANDOM"
 git checkout -b "$NEW_BRANCH"
 echo "✅ Checked out git branch ($NEW_BRANCH)"
 
