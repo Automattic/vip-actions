@@ -41,6 +41,10 @@ inputs:
     description: 'The terms to be added to the post.'
     required: false
     default: ''
+  changelog-title:
+    description: 'The title of the changelog post.'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -50,7 +54,7 @@ runs:
         php-version: "7.4"
 
     - name: Installs automattic/vip-build-tools
-      run: composer require automattic/vip-build-tools:1.3.0
+      run: composer require automattic/vip-build-tools:1.4.0
       shell: bash
 
     - name: Publishes the changelog
@@ -62,7 +66,8 @@ runs:
           --wp-categories='${{ inputs.category-id }}' \
           --wp-terms='${{ inputs.terms }}' \
           --link-to-pr='${{ inputs.link-to-pr }}' \
-          --changelog-source='${{ inputs.source }}'
+          --changelog-source='${{ inputs.source }}' \
+          --changelog-title='${{ inputs.changelog-title }}'
       shell: bash
       env:
         CHANGELOG_POST_TOKEN: ${{ inputs.endpoint-token }}

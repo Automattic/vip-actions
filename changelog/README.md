@@ -16,6 +16,7 @@ For more info about the tool it uses under the hood, see: https://github.com/Aut
   * `terms`: the taxonomy, and term IDs to be added to the post. For example `custom_taxonomy_slug:1,2`
   * `link-to-pr`: whether to add a link to the pull request to the changelog post, `false` by default.
   * `changelog-source`: source of the changelog description. For example, we can get changelog from the last release or last PR. Default is last PR but `last-release` can be provided to use aggregate PRs comprising the last release.
+  * `changelog-title`: custom title format for the changelog post. Supports placeholders: `{date}`, `{datetime}`, `{pr}`, `{version}`, `{repo}`.
 
 #### Example
 
