@@ -18,13 +18,19 @@ LOCAL_VERSION=$(node -p "require('./package.json').version")
 LOCAL_BRANCH=$(git branch --show-current)
 echo "✅ Found ${LOCAL_NAME} ${LOCAL_VERSION} on branch ${LOCAL_BRANCH}"
 
-# Validate npm is logged in and ready
-echo_title "Checking npm auth"
-if ! NPM_USER=$(npm whoami); then
-	echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
-	exit 202
+# Update npm
+echo_title "Updating npm to latest version"
+npm install -g npm
+
+# If not using Trusted Publishing, validate npm is logged in and ready
+if [ "${USE_TRUSTED_PUBLISHING:-}" != "true" ]; then
+	echo_title "Checking npm auth"
+	if ! NPM_USER=$(npm whoami); then
+		echo "❌ npm cli is not authenticated. Please make sure you're logged in or NPM_TOKEN is set."
+		exit 202
+	fi
+	echo "✅ Logged in as ${NPM_USER} and ready to publish"
 fi
-echo "✅ Logged in as ${NPM_USER} and ready to publish"
 
 # Validate no uncommitted changes.
 # Shouldn't happen in CI but protects against local runs.
