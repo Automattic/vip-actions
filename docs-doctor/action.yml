@@ -1,67 +1,170 @@
 name: Docs Doctor
-description: GitHub Action to analyze documentation sites for inconsistencies and issues using AI.
+description: Analyzes a PR for documentation inconsistencies and gaps using Claude via claude-code-action.
 author: Automattic
 
 branding:
-  icon: file-text
-  color: black
+  icon: activity
+  color: purple
 
 inputs:
-  url:
-    description: The URL to the docs site
+  anthropic_api_key:
+    description: The Anthropic API key to use
     required: true
 
-  openai_api_key:
-    description: The OpenAI API key to use for generating the docs report
-    required: true
+  docs_search_url:
+    description: Base URL for the docs site search (e.g. https://docs.wpvip.com/?s=)
+    required: false
+    default: 'https://docs.wpvip.com/?s='
+
+  max_turns:
+    description: Maximum number of agentic turns Claude can take
+    required: false
+    default: '20'
+
+  model:
+    description: Claude model to use
+    required: false
+    default: 'claude-sonnet-4-6'
 
   pr_number:
-    description: The pull request number to analyze
-    required: true
-
-  firecrawl_api_key:
-    description: The Firecrawl API key to use for crawling the docs site
+    description: Pull request number to analyze
     required: false
+    default: ${{ github.event.pull_request.number }}
 
-  urls_file:
-    description: Path to a text file containing URLs (one per line). If provided, firecrawl_api_key is not required
+  github_token:
+    description: GitHub token for API operations. If provided, skips OIDC authentication (no id-token permission needed and no Claude Code app installation required). If omitted, claude-code-action uses OIDC to authenticate as claude[bot] (requires id-token write permission and Claude Code app installed).
     required: false
+    default: ''
 
-  sitemap_url:
-    description: URL to a sitemap.xml file. If provided, takes priority over urls_file and firecrawl_api_key
+  show_full_output:
+    description: Show Claude's full turn-by-turn output in the GitHub Actions logs. WARNING - only enable in private repos as logs may expose sensitive data.
     required: false
-
-  confidence_threshold:
-    description: The confidence threshold for the AI
-    required: false
-    default: '0.8'
+    default: 'false'
 
   post_comment:
-    description: Whether to post the generated docs report as a comment.
+    description: Whether to post the report as a PR comment
     required: false
     default: 'true'
 
-  openai_model:
-    description: The OpenAI model to use for generating the docs report.
+  extra_prompt:
+    description: Additional instructions appended to the prompt
     required: false
-    default: gpt-5
-
-  execution_timeout:
-    description: Maximum execution time in seconds (default 600 seconds / 10 minutes)
-    required: false
-    default: '600'
-
-  github_token:
-    description: GitHub token
-    required: false
-    default: ${{ github.token }}
-
-outputs:
-  jsonReport:
-    description: The JSON object containing the inconsistencies found in the docs.
-  markdownReport:
-    description: The markdown report containing the inconsistencies found in the docs.
+    default: ''
 
 runs:
-  using: 'node24'
-  main: 'dist/index.js'
+  using: composite
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if ! [[ "${{ inputs.pr_number }}" =~ ^[0-9]+$ ]]; then
+          echo "::error::pr_number must be a positive integer, got: '${{ inputs.pr_number }}'"
+          exit 1
+        fi
+
+    - name: Run Docs Doctor analysis
+      id: claude
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        github_token: ${{ inputs.github_token }}
+        show_full_output: ${{ inputs.show_full_output }}
+        claude_args: |
+          --allowedTools "Read,Write,WebFetch,Bash(gh pr diff:*),Bash(gh pr view:*)"
+          --max-turns ${{ inputs.max_turns }}
+          --model ${{ inputs.model }}
+        prompt: |
+          You are the Docs Doctor. Your job is to analyze a GitHub Pull Request and determine if the documentation site needs updating.
+
+          ## Steps
+
+          **1. Get the PR information**
+          Run: gh pr view ${{ inputs.pr_number }} --json title,body
+          Run: gh pr diff ${{ inputs.pr_number }}
+
+          **2. Search the documentation site**
+          Based on the PR title, description, and diff, come up with **3 different search queries** that target the features, commands, APIs, or concepts affected by the PR. Each query should use different terms to maximize coverage.
+
+          For each query, use the `WebFetch` tool to fetch: `${{ inputs.docs_search_url }}<search+terms>`
+          Search terms must be separated by `+` (e.g. `${{ inputs.docs_search_url }}vip+cli+import`).
+
+          From the search results, collect the URLs of the most relevant documentation pages. Deduplicate across searches.
+
+          *IMPORTANT:* Only focus on user-facing changes:
+          - **Breaking Changes:** Removed/renamed APIs, commands, URLs, changed signatures, new required parameters, etc.
+          - **Behavioral Changes:** Modified return values, different error handling, changed defaults, modified features, fields, or CLI command behavior, etc.
+          - **Additive Changes:** New features, optional parameters, extended functionality, etc.
+          - **Deprecations:** Marked for removal, replaced functionality, etc.
+          - **CLI Changes:** New, renamed, or removed CLI commands, etc.
+          - **URL Changes:** Renamed, moved, or removed URLs
+
+          If the PR does not change any user-facing functionality (e.g. refactoring, internal optimizations), it is not impacting the documentation. Respond with only: "No documentation impact detected."
+
+          **3. Fetch and check relevant documentation pages**
+          Limit yourself to the **top 5 most relevant pages** from your search results.
+
+          For each relevant URL, use the `WebFetch` tool to retrieve the page content.
+          Cross-reference it against the PR's changes. Base your analysis *only* on what the page actually says — do not rely on assumptions about what it might contain or your previous knowledge about the specific page. Look for specific statements, instructions, examples, or references that are now outdated or incorrect due to the PR's changes.
+          Example: if the PR renames a field from `S3 Prefix` to `Path Prefix`, a page still mentioning `S3 Prefix` is an inconsistency.
+
+          Skip a page if:
+          - It does not mention the feature or component affected by the PR.
+          - It is a high-level overview or introduction with no specific claims about the changed functionality.
+
+          Look specifically for these inconsistency types:
+          - Outdated function signatures or incorrect parameter types
+          - References to renamed or removed commands, options, or fields
+          - Code examples or API responses that no longer match actual behavior
+          - Incorrect file paths or configuration keys
+          - Claims about functionality that the PR changes
+          - Missing mentions of new required steps or parameters
+          - Dead links to renamed endpoints or URLs
+
+          Be conservative: only flag clear, direct inconsistencies caused by this PR. Do not flag outdated content that isn't directly affected by these changes.
+
+          **4. Check for missing documentation**
+          Does the PR introduce a new user-facing feature, command, or concept that didn't appear in your search results? If so, note what needs to be documented.
+
+          **5. Write your findings**
+          If you found no inconsistencies AND no missing documentation, do not write any file. Respond with only: "No documentation impact detected."
+
+          Otherwise, write your report to `docs-report.md` in the current working directory. Do NOT post a PR comment yourself — a later step handles that.
+
+          Be specific: when flagging an inconsistency, quote the exact text in the docs that is outdated and what the correct text should be.
+
+          Format your response as:
+
+          ## 🩺 Docs Doctor Report
+
+          ### Inconsistencies in Existing Documentation
+          For each affected page, include: the URL, what's wrong, and what it should say.
+          Classify each finding with a severity:
+          - 🔴 **Breaking:** Users will hit errors or wrong behavior following current docs
+          - 🟡 **Outdated:** Docs mention old names/values but the intent is still clear
+          - 🟢 **Gap:** New feature lacks documentation but existing docs aren't wrong
+
+          ### Possible Issues
+          Include findings here if you are uncertain whether something is a real inconsistency. Omit this section if there are none.
+
+          ### Missing Documentation
+          For each gap, describe what feature is missing docs and suggest a URL path. Omit this section if there are none.
+
+          <details><summary><h3>Details</h3></summary>
+          Search terms: <List of used search terms>
+          Relevant URLs: <List of relevant URLs analyzed>
+          </details>
+
+          Last analyzed commit: `<SHORT_SHA>` where `<SHORT_SHA>` is the first 7 characters of `${{ github.event.pull_request.head.sha }}`.
+         
+          ${{ inputs.extra_prompt }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
+
+    - name: Post comment
+      if: inputs.post_comment == 'true' && hashFiles('docs-report.md') != ''
+      uses: mshick/add-pr-comment@ffd016c7e151d97d69d21a843022fd4cd5b96fe5
+      with:
+        message-path: docs-report.md
+        message-id: docs-doctor
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
