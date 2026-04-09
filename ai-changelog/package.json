@@ -15,7 +15,7 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^3.0.0",
-    "@actions/github": "^9.0.0"
+    "@actions/github": "^9.1.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4"
