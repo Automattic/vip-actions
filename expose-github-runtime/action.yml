@@ -5,7 +5,7 @@ runs:
   using: composite
   steps:
     - name: Expose runtime
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       with:
         script: |
           Object.keys(process.env).forEach((key) => {
