@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { validate } from '@readme/openapi-parser';
 
 let url;
@@ -16,7 +17,7 @@ const source = /^https?:\/\//i.test( url )
 
 		return response.json();
 	} )
-	: url;
+	: await readFile( url, 'utf-8' ).then( data => JSON.parse( data ) );
 
 validate( source, { resolve: { external: true, file: true } } )
 	.then( result => {

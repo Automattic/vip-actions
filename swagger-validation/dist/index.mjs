@@ -16568,6 +16568,13 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("fs");
 
 /***/ }),
 
+/***/ 1455:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs/promises");
+
+/***/ }),
+
 /***/ 6928:
 /***/ ((module) => {
 
@@ -25795,7 +25802,9 @@ function compileErrors(result) {
 /***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
 
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-/* harmony import */ var _readme_openapi_parser__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6730);
+/* harmony import */ var node_fs_promises__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(1455);
+/* harmony import */ var _readme_openapi_parser__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(6730);
+
 
 
 let url;
@@ -25814,9 +25823,9 @@ const source = /^https?:\/\//i.test( url )
 
 		return response.json();
 	} )
-	: url;
+	: await (0,node_fs_promises__WEBPACK_IMPORTED_MODULE_0__.readFile)( url, 'utf-8' ).then( data => JSON.parse( data ) );
 
-(0,_readme_openapi_parser__WEBPACK_IMPORTED_MODULE_0__/* .validate */ .tf)( source, { resolve: { external: true, file: true } } )
+(0,_readme_openapi_parser__WEBPACK_IMPORTED_MODULE_1__/* .validate */ .tf)( source, { resolve: { external: true, file: true } } )
 	.then( result => {
 		if ( result.valid ) {
 			console.log( 'The API definition is valid!' );
