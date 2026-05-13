@@ -9028,7 +9028,7 @@ class Ajv {
     constructor(opts = {}) {
         this.schemas = {};
         this.refs = {};
-        this.formats = {};
+        this.formats = Object.create(null);
         this._compilations = new Set();
         this._loading = {};
         this._cache = new Map();
@@ -11828,6 +11828,7 @@ exports["default"] = def;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const code_1 = __nccwpck_require__(8484);
+const util_1 = __nccwpck_require__(4464);
 const codegen_1 = __nccwpck_require__(1436);
 const error = {
     message: ({ schemaCode }) => (0, codegen_1.str) `must match pattern "${schemaCode}"`,
@@ -11840,11 +11841,19 @@ const def = {
     $data: true,
     error,
     code(cxt) {
-        const { data, $data, schema, schemaCode, it } = cxt;
-        // TODO regexp should be wrapped in try/catchs
+        const { gen, data, $data, schema, schemaCode, it } = cxt;
         const u = it.opts.unicodeRegExp ? "u" : "";
-        const regExp = $data ? (0, codegen_1._) `(new RegExp(${schemaCode}, ${u}))` : (0, code_1.usePattern)(cxt, schema);
-        cxt.fail$data((0, codegen_1._) `!${regExp}.test(${data})`);
+        if ($data) {
+            const { regExp } = it.opts.code;
+            const regExpCode = regExp.code === "new RegExp" ? (0, codegen_1._) `new RegExp` : (0, util_1.useFunc)(gen, regExp);
+            const valid = gen.let("valid");
+            gen.try(() => gen.assign(valid, (0, codegen_1._) `${regExpCode}(${schemaCode}, ${u}).test(${data})`), () => gen.assign(valid, false));
+            cxt.fail$data((0, codegen_1._) `!${valid}`);
+        }
+        else {
+            const regExp = (0, code_1.usePattern)(cxt, schema);
+            cxt.fail$data((0, codegen_1._) `!${regExp}.test(${data})`);
+        }
     },
 };
 exports["default"] = def;
@@ -16609,39 +16618,39 @@ const sometimesKeywords = new Set(["as", "async", "from", "get", "of", "set"]);
 const NEWLINE$1 = /\r\n|[\n\r\u2028\u2029]/;
 const BRACKET = /^[()[\]{}]$/;
 let tokenize;
-{
-  const JSX_TAG = /^[a-z][\w-]*$/i;
-  const getTokenType = function (token, offset, text) {
-    if (token.type === "name") {
-      if (helperValidatorIdentifier.isKeyword(token.value) || helperValidatorIdentifier.isStrictReservedWord(token.value, true) || sometimesKeywords.has(token.value)) {
-        return "keyword";
-      }
-      if (JSX_TAG.test(token.value) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
-        return "jsxIdentifier";
-      }
-      if (token.value[0] !== token.value[0].toLowerCase()) {
-        return "capitalized";
-      }
+const JSX_TAG = /^[a-z][\w-]*$/i;
+const getTokenType = function (token, offset, text) {
+  if (token.type === "name") {
+    const tokenValue = token.value;
+    if (helperValidatorIdentifier.isKeyword(tokenValue) || helperValidatorIdentifier.isStrictReservedWord(tokenValue, true) || sometimesKeywords.has(tokenValue)) {
+      return "keyword";
     }
-    if (token.type === "punctuator" && BRACKET.test(token.value)) {
-      return "bracket";
+    if (JSX_TAG.test(tokenValue) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
+      return "jsxIdentifier";
     }
-    if (token.type === "invalid" && (token.value === "@" || token.value === "#")) {
-      return "punctuator";
+    const firstChar = String.fromCodePoint(tokenValue.codePointAt(0));
+    if (firstChar !== firstChar.toLowerCase()) {
+      return "capitalized";
     }
-    return token.type;
-  };
-  tokenize = function* (text) {
-    let match;
-    while (match = jsTokens.default.exec(text)) {
-      const token = jsTokens.matchToToken(match);
-      yield {
-        type: getTokenType(token, match.index, text),
-        value: token.value
-      };
-    }
-  };
-}
+  }
+  if (token.type === "punctuator" && BRACKET.test(token.value)) {
+    return "bracket";
+  }
+  if (token.type === "invalid" && (token.value === "@" || token.value === "#")) {
+    return "punctuator";
+  }
+  return token.type;
+};
+tokenize = function* (text) {
+  let match;
+  while (match = jsTokens.default.exec(text)) {
+    const token = jsTokens.matchToToken(match);
+    yield {
+      type: getTokenType(token, match.index, text),
+      value: token.value
+    };
+  }
+};
 function highlight(text) {
   if (text === "") return "";
   const defs = getDefs(true);
@@ -16661,7 +16670,7 @@ function highlight(text) {
 
 let deprecationWarningShown = false;
 const NEWLINE = /\r\n|[\n\r\u2028\u2029]/;
-function getMarkerLines(loc, source, opts) {
+function getMarkerLines(loc, source, opts, startLineBaseZero) {
   const startLoc = Object.assign({
     column: 0,
     line: -1
@@ -16671,9 +16680,9 @@ function getMarkerLines(loc, source, opts) {
     linesAbove = 2,
     linesBelow = 3
   } = opts || {};
-  const startLine = startLoc.line;
+  const startLine = startLoc.line - startLineBaseZero;
   const startColumn = startLoc.column;
-  const endLine = endLoc.line;
+  const endLine = endLoc.line - startLineBaseZero;
   const endColumn = endLoc.column;
   let start = Math.max(startLine - (linesAbove + 1), 0);
   let end = Math.min(source.length, endLine + linesBelow);
@@ -16719,19 +16728,20 @@ function getMarkerLines(loc, source, opts) {
 }
 function codeFrameColumns(rawLines, loc, opts = {}) {
   const shouldHighlight = opts.forceColor || isColorSupported() && opts.highlightCode;
+  const startLineBaseZero = (opts.startLine || 1) - 1;
   const defs = getDefs(shouldHighlight);
   const lines = rawLines.split(NEWLINE);
   const {
     start,
     end,
     markerLines
-  } = getMarkerLines(loc, lines, opts);
+  } = getMarkerLines(loc, lines, opts, startLineBaseZero);
   const hasColumns = loc.start && typeof loc.start.column === "number";
-  const numberMaxWidth = String(end).length;
+  const numberMaxWidth = String(end + startLineBaseZero).length;
   const highlightedLines = shouldHighlight ? highlight(rawLines) : rawLines;
   let frame = highlightedLines.split(NEWLINE, end).slice(start, end).map((line, index) => {
     const number = start + 1 + index;
-    const paddedNumber = ` ${number}`.slice(-numberMaxWidth);
+    const paddedNumber = ` ${number + startLineBaseZero}`.slice(-numberMaxWidth);
     const gutter = ` ${paddedNumber} |`;
     const hasMarker = markerLines[number];
     const lastMarkerLine = !markerLines[number + 1];
@@ -17319,7 +17329,7 @@ module.exports = _unsupportedIterableToArray, module.exports.__esModule = true, 
 
 
 
-const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4, nonSimpleDomain } = __nccwpck_require__(5077)
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = __nccwpck_require__(5077)
 const { SCHEMES, getSchemeHandler } = __nccwpck_require__(2919)
 
 /**
@@ -17330,7 +17340,7 @@ const { SCHEMES, getSchemeHandler } = __nccwpck_require__(2919)
  */
 function normalize (uri, options) {
   if (typeof uri === 'string') {
-    uri = /** @type {T} */ (serialize(parse(uri, options), options))
+    uri = /** @type {T} */ (normalizeString(uri, options))
   } else if (typeof uri === 'object') {
     uri = /** @type {T} */ (parse(serialize(uri, options), options))
   }
@@ -17425,21 +17435,10 @@ function resolveComponent (base, relative, options, skipNormalization) {
  * @returns {boolean}
  */
 function equal (uriA, uriB, options) {
-  if (typeof uriA === 'string') {
-    uriA = unescape(uriA)
-    uriA = serialize(normalizeComponentEncoding(parse(uriA, options), true), { ...options, skipEscape: true })
-  } else if (typeof uriA === 'object') {
-    uriA = serialize(normalizeComponentEncoding(uriA, true), { ...options, skipEscape: true })
-  }
+  const normalizedA = normalizeComparableURI(uriA, options)
+  const normalizedB = normalizeComparableURI(uriB, options)
 
-  if (typeof uriB === 'string') {
-    uriB = unescape(uriB)
-    uriB = serialize(normalizeComponentEncoding(parse(uriB, options), true), { ...options, skipEscape: true })
-  } else if (typeof uriB === 'object') {
-    uriB = serialize(normalizeComponentEncoding(uriB, true), { ...options, skipEscape: true })
-  }
-
-  return uriA.toLowerCase() === uriB.toLowerCase()
+  return normalizedA !== undefined && normalizedB !== undefined && normalizedA.toLowerCase() === normalizedB.toLowerCase()
 }
 
 /**
@@ -17475,13 +17474,13 @@ function serialize (cmpts, opts) {
 
   if (component.path !== undefined) {
     if (!options.skipEscape) {
-      component.path = escape(component.path)
+      component.path = escapePreservingEscapes(component.path)
 
       if (component.scheme !== undefined) {
         component.path = component.path.split('%3A').join(':')
       }
     } else {
-      component.path = unescape(component.path)
+      component.path = normalizePercentEncoding(component.path)
     }
   }
 
@@ -17533,11 +17532,28 @@ function serialize (cmpts, opts) {
 const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u
 
 /**
+ * @param {import('./types/index').URIComponent} parsed
+ * @param {RegExpMatchArray} matches
+ * @returns {string|undefined}
+ */
+function getParseError (parsed, matches) {
+  if (matches[2] !== undefined && parsed.path && parsed.path[0] !== '/') {
+    return 'URI path must start with "/" when authority is present.'
+  }
+
+  if (typeof parsed.port === 'number' && (parsed.port < 0 || parsed.port > 65535)) {
+    return 'URI port is malformed.'
+  }
+
+  return undefined
+}
+
+/**
  * @param {string} uri
  * @param {import('./types/index').Options} [opts]
- * @returns
+ * @returns {{ parsed: import('./types/index').URIComponent, malformedAuthorityOrPort: boolean }}
  */
-function parse (uri, opts) {
+function parseWithStatus (uri, opts) {
   const options = Object.assign({}, opts)
   /** @type {import('./types/index').URIComponent} */
   const parsed = {
@@ -17549,6 +17565,8 @@ function parse (uri, opts) {
     query: undefined,
     fragment: undefined
   }
+
+  let malformedAuthorityOrPort = false
 
   let isIP = false
   if (options.reference === 'suffix') {
@@ -17575,6 +17593,13 @@ function parse (uri, opts) {
     if (isNaN(parsed.port)) {
       parsed.port = matches[5]
     }
+
+    const parseError = getParseError(parsed, matches)
+    if (parseError !== undefined) {
+      parsed.error = parsed.error || parseError
+      malformedAuthorityOrPort = true
+    }
+
     if (parsed.host) {
       const ipv4result = isIPv4(parsed.host)
       if (ipv4result === false) {
@@ -17623,14 +17648,18 @@ function parse (uri, opts) {
           parsed.scheme = unescape(parsed.scheme)
         }
         if (parsed.host !== undefined) {
-          parsed.host = unescape(parsed.host)
+          parsed.host = reescapeHostDelimiters(unescape(parsed.host), isIP)
         }
       }
       if (parsed.path) {
-        parsed.path = escape(unescape(parsed.path))
+        parsed.path = normalizePathEncoding(parsed.path)
       }
       if (parsed.fragment) {
-        parsed.fragment = encodeURI(decodeURIComponent(parsed.fragment))
+        try {
+          parsed.fragment = encodeURI(decodeURIComponent(parsed.fragment))
+        } catch {
+          parsed.error = parsed.error || 'URI malformed'
+        }
       }
     }
 
@@ -17641,7 +17670,54 @@ function parse (uri, opts) {
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
   }
-  return parsed
+  return { parsed, malformedAuthorityOrPort }
+}
+
+/**
+ * @param {string} uri
+ * @param {import('./types/index').Options} [opts]
+ * @returns
+ */
+function parse (uri, opts) {
+  return parseWithStatus(uri, opts).parsed
+}
+
+/**
+ * @param {string} uri
+ * @param {import('./types/index').Options} [opts]
+ * @returns {string}
+ */
+function normalizeString (uri, opts) {
+  return normalizeStringWithStatus(uri, opts).normalized
+}
+
+/**
+ * @param {string} uri
+ * @param {import('./types/index').Options} [opts]
+ * @returns {{ normalized: string, malformedAuthorityOrPort: boolean }}
+ */
+function normalizeStringWithStatus (uri, opts) {
+  const { parsed, malformedAuthorityOrPort } = parseWithStatus(uri, opts)
+  return {
+    normalized: malformedAuthorityOrPort ? uri : serialize(parsed, opts),
+    malformedAuthorityOrPort
+  }
+}
+
+/**
+ * @param {import ('./types/index').URIComponent|string} uri
+ * @param {import('./types/index').Options} [opts]
+ * @returns {string|undefined}
+ */
+function normalizeComparableURI (uri, opts) {
+  if (typeof uri === 'string') {
+    const { normalized, malformedAuthorityOrPort } = normalizeStringWithStatus(uri, opts)
+    return malformedAuthorityOrPort ? undefined : normalized
+  }
+
+  if (typeof uri === 'object') {
+    return serialize(uri, opts)
+  }
 }
 
 const fastUri = {
@@ -17946,6 +18022,15 @@ const isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\d
 /** @type {(value: string) => boolean} */
 const isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u)
 
+/** @type {(value: string) => boolean} */
+const isHexPair = RegExp.prototype.test.bind(/^[\da-f]{2}$/iu)
+
+/** @type {(value: string) => boolean} */
+const isUnreserved = RegExp.prototype.test.bind(/^[\da-z\-._~]$/iu)
+
+/** @type {(value: string) => boolean} */
+const isPathCharacter = RegExp.prototype.test.bind(/^[\da-z\-._~!$&'()*+,;=:@/]$/iu)
+
 /**
  * @param {Array<string>} input
  * @returns {string}
@@ -18204,31 +18289,126 @@ function removeDotSegments (path) {
 }
 
 /**
- * @param {import('../types/index').URIComponent} component
- * @param {boolean} esc
- * @returns {import('../types/index').URIComponent}
+ * Re-escape RFC 3986 gen-delims that must not appear literally in the host.
+ * After the URI regex parses, these characters cannot be literal in the host
+ * field, so any that appear after decoding came from percent-encoding and
+ * must be restored to prevent authority structure changes.
+ *
+ * @param {string} host
+ * @param {boolean} isIP - true for IPv4/IPv6 hosts (skip colon re-escaping)
+ * @returns {string}
  */
-function normalizeComponentEncoding (component, esc) {
-  const func = esc !== true ? escape : unescape
-  if (component.scheme !== undefined) {
-    component.scheme = func(component.scheme)
+const HOST_DELIMS = { '@': '%40', '/': '%2F', '?': '%3F', '#': '%23', ':': '%3A' }
+const HOST_DELIM_RE = /[@/?#:]/g
+const HOST_DELIM_NO_COLON_RE = /[@/?#]/g
+
+function reescapeHostDelimiters (host, isIP) {
+  const re = isIP ? HOST_DELIM_NO_COLON_RE : HOST_DELIM_RE
+  re.lastIndex = 0
+  return host.replace(re, (ch) => HOST_DELIMS[ch])
+}
+
+/**
+ * Normalizes percent escapes and optionally decodes only unreserved ASCII bytes.
+ * Reserved delimiters such as `%2F` and `%2E` stay escaped.
+ *
+ * @param {string} input
+ * @param {boolean} [decodeUnreserved=false]
+ * @returns {string}
+ */
+function normalizePercentEncoding (input, decodeUnreserved = false) {
+  if (input.indexOf('%') === -1) {
+    return input
   }
-  if (component.userinfo !== undefined) {
-    component.userinfo = func(component.userinfo)
+
+  let output = ''
+
+  for (let i = 0; i < input.length; i++) {
+    if (input[i] === '%' && i + 2 < input.length) {
+      const hex = input.slice(i + 1, i + 3)
+      if (isHexPair(hex)) {
+        const normalizedHex = hex.toUpperCase()
+        const decoded = String.fromCharCode(parseInt(normalizedHex, 16))
+
+        if (decodeUnreserved && isUnreserved(decoded)) {
+          output += decoded
+        } else {
+          output += '%' + normalizedHex
+        }
+
+        i += 2
+        continue
+      }
+    }
+
+    output += input[i]
   }
-  if (component.host !== undefined) {
-    component.host = func(component.host)
+
+  return output
+}
+
+/**
+ * Normalizes path data without turning reserved escapes into live path syntax.
+ * Valid escapes are uppercased, raw unsafe characters are escaped, and only
+ * unreserved bytes that are not `.` are decoded.
+ *
+ * @param {string} input
+ * @returns {string}
+ */
+function normalizePathEncoding (input) {
+  let output = ''
+
+  for (let i = 0; i < input.length; i++) {
+    if (input[i] === '%' && i + 2 < input.length) {
+      const hex = input.slice(i + 1, i + 3)
+      if (isHexPair(hex)) {
+        const normalizedHex = hex.toUpperCase()
+        const decoded = String.fromCharCode(parseInt(normalizedHex, 16))
+
+        if (decoded !== '.' && isUnreserved(decoded)) {
+          output += decoded
+        } else {
+          output += '%' + normalizedHex
+        }
+
+        i += 2
+        continue
+      }
+    }
+
+    if (isPathCharacter(input[i])) {
+      output += input[i]
+    } else {
+      output += escape(input[i])
+    }
   }
-  if (component.path !== undefined) {
-    component.path = func(component.path)
+
+  return output
+}
+
+/**
+ * Escapes a component while preserving existing valid percent escapes.
+ *
+ * @param {string} input
+ * @returns {string}
+ */
+function escapePreservingEscapes (input) {
+  let output = ''
+
+  for (let i = 0; i < input.length; i++) {
+    if (input[i] === '%' && i + 2 < input.length) {
+      const hex = input.slice(i + 1, i + 3)
+      if (isHexPair(hex)) {
+        output += '%' + hex.toUpperCase()
+        i += 2
+        continue
+      }
+    }
+
+    output += escape(input[i])
   }
-  if (component.query !== undefined) {
-    component.query = func(component.query)
-  }
-  if (component.fragment !== undefined) {
-    component.fragment = func(component.fragment)
-  }
-  return component
+
+  return output
 }
 
 /**
@@ -18250,7 +18430,7 @@ function recomposeAuthority (component) {
       if (ipV6res.isIPV6 === true) {
         host = `[${ipV6res.escapedHost}]`
       } else {
-        host = component.host
+        host = reescapeHostDelimiters(host, false)
       }
     }
     uriTokens.push(host)
@@ -18267,7 +18447,10 @@ function recomposeAuthority (component) {
 module.exports = {
   nonSimpleDomain,
   recomposeAuthority,
-  normalizeComponentEncoding,
+  reescapeHostDelimiters,
+  normalizePercentEncoding,
+  normalizePathEncoding,
+  escapePreservingEscapes,
   removeDotSegments,
   isIPv4,
   isUUID,
@@ -18278,115 +18461,16 @@ module.exports = {
 
 /***/ }),
 
-/***/ 6337:
-/***/ ((module) => {
+/***/ 6730:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"http://json-schema.org/draft-04/schema#","$schema":"http://json-schema.org/draft-04/schema#","description":"Core schema meta-schema","definitions":{"schemaArray":{"type":"array","minItems":1,"items":{"$ref":"#"}},"positiveInteger":{"type":"integer","minimum":0},"positiveIntegerDefault0":{"allOf":[{"$ref":"#/definitions/positiveInteger"},{"default":0}]},"simpleTypes":{"enum":["array","boolean","integer","null","number","object","string"]},"stringArray":{"type":"array","items":{"type":"string"},"minItems":1,"uniqueItems":true}},"type":"object","properties":{"id":{"type":"string","format":"uri"},"$schema":{"type":"string","format":"uri"},"title":{"type":"string"},"description":{"type":"string"},"default":{},"multipleOf":{"type":"number","minimum":0,"exclusiveMinimum":true},"maximum":{"type":"number"},"exclusiveMaximum":{"type":"boolean","default":false},"minimum":{"type":"number"},"exclusiveMinimum":{"type":"boolean","default":false},"maxLength":{"$ref":"#/definitions/positiveInteger"},"minLength":{"$ref":"#/definitions/positiveIntegerDefault0"},"pattern":{"type":"string","format":"regex"},"additionalItems":{"anyOf":[{"type":"boolean"},{"$ref":"#"}],"default":{}},"items":{"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/schemaArray"}],"default":{}},"maxItems":{"$ref":"#/definitions/positiveInteger"},"minItems":{"$ref":"#/definitions/positiveIntegerDefault0"},"uniqueItems":{"type":"boolean","default":false},"maxProperties":{"$ref":"#/definitions/positiveInteger"},"minProperties":{"$ref":"#/definitions/positiveIntegerDefault0"},"required":{"$ref":"#/definitions/stringArray"},"additionalProperties":{"anyOf":[{"type":"boolean"},{"$ref":"#"}],"default":{}},"definitions":{"type":"object","additionalProperties":{"$ref":"#"},"default":{}},"properties":{"type":"object","additionalProperties":{"$ref":"#"},"default":{}},"patternProperties":{"type":"object","additionalProperties":{"$ref":"#"},"default":{}},"dependencies":{"type":"object","additionalProperties":{"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/stringArray"}]}},"enum":{"type":"array","minItems":1,"uniqueItems":true},"type":{"anyOf":[{"$ref":"#/definitions/simpleTypes"},{"type":"array","items":{"$ref":"#/definitions/simpleTypes"},"minItems":1,"uniqueItems":true}]},"allOf":{"$ref":"#/definitions/schemaArray"},"anyOf":{"$ref":"#/definitions/schemaArray"},"oneOf":{"$ref":"#/definitions/schemaArray"},"not":{"$ref":"#"}},"dependencies":{"exclusiveMaximum":["maximum"],"exclusiveMinimum":["minimum"]},"default":{}}');
 
-/***/ }),
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  tf: () => (/* binding */ validate)
+});
 
-/***/ 3837:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$id":"https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#","description":"Meta-schema for $data reference (JSON AnySchema extension proposal)","type":"object","required":["$data"],"properties":{"$data":{"type":"string","anyOf":[{"format":"relative-json-pointer"},{"format":"json-pointer"}]}},"additionalProperties":false}');
-
-/***/ }),
-
-/***/ 7216:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/applicator","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/applicator":true},"$dynamicAnchor":"meta","title":"Applicator vocabulary meta-schema","type":["object","boolean"],"properties":{"prefixItems":{"$ref":"#/$defs/schemaArray"},"items":{"$dynamicRef":"#meta"},"contains":{"$dynamicRef":"#meta"},"additionalProperties":{"$dynamicRef":"#meta"},"properties":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"},"default":{}},"patternProperties":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"},"propertyNames":{"format":"regex"},"default":{}},"dependentSchemas":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"},"default":{}},"propertyNames":{"$dynamicRef":"#meta"},"if":{"$dynamicRef":"#meta"},"then":{"$dynamicRef":"#meta"},"else":{"$dynamicRef":"#meta"},"allOf":{"$ref":"#/$defs/schemaArray"},"anyOf":{"$ref":"#/$defs/schemaArray"},"oneOf":{"$ref":"#/$defs/schemaArray"},"not":{"$dynamicRef":"#meta"}},"$defs":{"schemaArray":{"type":"array","minItems":1,"items":{"$dynamicRef":"#meta"}}}}');
-
-/***/ }),
-
-/***/ 8226:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/content","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/content":true},"$dynamicAnchor":"meta","title":"Content vocabulary meta-schema","type":["object","boolean"],"properties":{"contentEncoding":{"type":"string"},"contentMediaType":{"type":"string"},"contentSchema":{"$dynamicRef":"#meta"}}}');
-
-/***/ }),
-
-/***/ 518:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/core","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/core":true},"$dynamicAnchor":"meta","title":"Core vocabulary meta-schema","type":["object","boolean"],"properties":{"$id":{"$ref":"#/$defs/uriReferenceString","$comment":"Non-empty fragments not allowed.","pattern":"^[^#]*#?$"},"$schema":{"$ref":"#/$defs/uriString"},"$ref":{"$ref":"#/$defs/uriReferenceString"},"$anchor":{"$ref":"#/$defs/anchorString"},"$dynamicRef":{"$ref":"#/$defs/uriReferenceString"},"$dynamicAnchor":{"$ref":"#/$defs/anchorString"},"$vocabulary":{"type":"object","propertyNames":{"$ref":"#/$defs/uriString"},"additionalProperties":{"type":"boolean"}},"$comment":{"type":"string"},"$defs":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"}}},"$defs":{"anchorString":{"type":"string","pattern":"^[A-Za-z_][-A-Za-z0-9._]*$"},"uriString":{"type":"string","format":"uri"},"uriReferenceString":{"type":"string","format":"uri-reference"}}}');
-
-/***/ }),
-
-/***/ 4588:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/format-annotation","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/format-annotation":true},"$dynamicAnchor":"meta","title":"Format vocabulary meta-schema for annotation results","type":["object","boolean"],"properties":{"format":{"type":"string"}}}');
-
-/***/ }),
-
-/***/ 5707:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/meta-data","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/meta-data":true},"$dynamicAnchor":"meta","title":"Meta-data vocabulary meta-schema","type":["object","boolean"],"properties":{"title":{"type":"string"},"description":{"type":"string"},"default":true,"deprecated":{"type":"boolean","default":false},"readOnly":{"type":"boolean","default":false},"writeOnly":{"type":"boolean","default":false},"examples":{"type":"array","items":true}}}');
-
-/***/ }),
-
-/***/ 9547:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/unevaluated","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/unevaluated":true},"$dynamicAnchor":"meta","title":"Unevaluated applicator vocabulary meta-schema","type":["object","boolean"],"properties":{"unevaluatedItems":{"$dynamicRef":"#meta"},"unevaluatedProperties":{"$dynamicRef":"#meta"}}}');
-
-/***/ }),
-
-/***/ 7082:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/validation","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/validation":true},"$dynamicAnchor":"meta","title":"Validation vocabulary meta-schema","type":["object","boolean"],"properties":{"type":{"anyOf":[{"$ref":"#/$defs/simpleTypes"},{"type":"array","items":{"$ref":"#/$defs/simpleTypes"},"minItems":1,"uniqueItems":true}]},"const":true,"enum":{"type":"array","items":true},"multipleOf":{"type":"number","exclusiveMinimum":0},"maximum":{"type":"number"},"exclusiveMaximum":{"type":"number"},"minimum":{"type":"number"},"exclusiveMinimum":{"type":"number"},"maxLength":{"$ref":"#/$defs/nonNegativeInteger"},"minLength":{"$ref":"#/$defs/nonNegativeIntegerDefault0"},"pattern":{"type":"string","format":"regex"},"maxItems":{"$ref":"#/$defs/nonNegativeInteger"},"minItems":{"$ref":"#/$defs/nonNegativeIntegerDefault0"},"uniqueItems":{"type":"boolean","default":false},"maxContains":{"$ref":"#/$defs/nonNegativeInteger"},"minContains":{"$ref":"#/$defs/nonNegativeInteger","default":1},"maxProperties":{"$ref":"#/$defs/nonNegativeInteger"},"minProperties":{"$ref":"#/$defs/nonNegativeIntegerDefault0"},"required":{"$ref":"#/$defs/stringArray"},"dependentRequired":{"type":"object","additionalProperties":{"$ref":"#/$defs/stringArray"}}},"$defs":{"nonNegativeInteger":{"type":"integer","minimum":0},"nonNegativeIntegerDefault0":{"$ref":"#/$defs/nonNegativeInteger","default":0},"simpleTypes":{"enum":["array","boolean","integer","null","number","object","string"]},"stringArray":{"type":"array","items":{"type":"string"},"uniqueItems":true,"default":[]}}}');
-
-/***/ }),
-
-/***/ 1678:
-/***/ ((module) => {
-
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/schema","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/core":true,"https://json-schema.org/draft/2020-12/vocab/applicator":true,"https://json-schema.org/draft/2020-12/vocab/unevaluated":true,"https://json-schema.org/draft/2020-12/vocab/validation":true,"https://json-schema.org/draft/2020-12/vocab/meta-data":true,"https://json-schema.org/draft/2020-12/vocab/format-annotation":true,"https://json-schema.org/draft/2020-12/vocab/content":true},"$dynamicAnchor":"meta","title":"Core and Validation specifications meta-schema","allOf":[{"$ref":"meta/core"},{"$ref":"meta/applicator"},{"$ref":"meta/unevaluated"},{"$ref":"meta/validation"},{"$ref":"meta/meta-data"},{"$ref":"meta/format-annotation"},{"$ref":"meta/content"}],"type":["object","boolean"],"$comment":"This meta-schema also defines keywords that have appeared in previous drafts in order to prevent incompatible extensions as they remain in common use.","properties":{"definitions":{"$comment":"\\"definitions\\" has been replaced by \\"$defs\\".","type":"object","additionalProperties":{"$dynamicRef":"#meta"},"deprecated":true,"default":{}},"dependencies":{"$comment":"\\"dependencies\\" has been split and replaced by \\"dependentSchemas\\" and \\"dependentRequired\\" in order to serve their differing semantics.","type":"object","additionalProperties":{"anyOf":[{"$dynamicRef":"#meta"},{"$ref":"meta/validation#/$defs/stringArray"}]},"deprecated":true,"default":{}},"$recursiveAnchor":{"$comment":"\\"$recursiveAnchor\\" has been replaced by \\"$dynamicAnchor\\".","$ref":"meta/core#/$defs/anchorString","deprecated":true},"$recursiveRef":{"$comment":"\\"$recursiveRef\\" has been replaced by \\"$dynamicRef\\".","$ref":"meta/core#/$defs/uriReferenceString","deprecated":true}}}');
-
-/***/ })
-
-/******/ });
-/************************************************************************/
-/******/ // The module cache
-/******/ var __webpack_module_cache__ = {};
-/******/ 
-/******/ // The require function
-/******/ function __nccwpck_require__(moduleId) {
-/******/ 	// Check if module is in cache
-/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 	if (cachedModule !== undefined) {
-/******/ 		return cachedModule.exports;
-/******/ 	}
-/******/ 	// Create a new module (and put it into the cache)
-/******/ 	var module = __webpack_module_cache__[moduleId] = {
-/******/ 		// no module.id needed
-/******/ 		// no module.loaded needed
-/******/ 		exports: {}
-/******/ 	};
-/******/ 
-/******/ 	// Execute the module function
-/******/ 	var threw = true;
-/******/ 	try {
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 		threw = false;
-/******/ 	} finally {
-/******/ 		if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 	}
-/******/ 
-/******/ 	// Return the exports of the module
-/******/ 	return module.exports;
-/******/ }
-/******/ 
-/************************************************************************/
-/******/ /* webpack/runtime/compat */
-/******/ 
-/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
-/******/ 
-/************************************************************************/
-var __webpack_exports__ = {};
+// UNUSED EXPORTS: bundle, compileErrors, dereference, parse
 
 ;// CONCATENATED MODULE: ./node_modules/@readme/openapi-parser/dist/chunk-IYQ77VVR.js
 // src/lib/assertions.ts
@@ -24564,10 +24648,10 @@ var openapi = {
 };
 
 //# sourceMappingURL=index.mjs.map
-// EXTERNAL MODULE: ./node_modules/ajv/dist/2020.js
-var _2020 = __nccwpck_require__(2210);
 // EXTERNAL MODULE: ./node_modules/ajv-draft-04/dist/index.js
 var dist = __nccwpck_require__(905);
+// EXTERNAL MODULE: ./node_modules/ajv/dist/2020.js
+var _2020 = __nccwpck_require__(2210);
 ;// CONCATENATED MODULE: ./node_modules/@readme/openapi-parser/dist/index.js
 
 
@@ -24726,7 +24810,7 @@ function initializeAjv(draft04 = true) {
   }
   return new _2020(opts);
 }
-function validateSchema(api, options = {}) {
+function validateSchema(api, options = {}, suppressedInstancePaths = []) {
   if (hasInvalidPaths(api)) {
     return {
       valid: false,
@@ -24768,7 +24852,12 @@ function validateSchema(api, options = {}) {
     return { valid: true, warnings: [], specification: specificationName };
   }
   let additionalErrors = 0;
-  let reducedErrors = reduceAjvErrors(ajv.errors);
+  let reducedErrors = reduceAjvErrors(ajv.errors).filter((err) => {
+    return !suppressedInstancePaths.some((path) => err.instancePath === path || err.instancePath.startsWith(`${path}/`));
+  });
+  if (!reducedErrors.length) {
+    return { valid: true, warnings: [], specification: specificationName };
+  }
   if (reducedErrors.length >= LARGE_SPEC_ERROR_CAP) {
     try {
       if (JSON.stringify(api).length >= LARGE_SPEC_SIZE_CAP) {
@@ -24806,11 +24895,21 @@ function validateSchema(api, options = {}) {
 var SpecificationValidator = class {
   errors = [];
   warnings = [];
+  /**
+   * Instance paths flagged by `runPreSchemaChecks()`. Used to suppress AJV `oneOf` noise that
+   * the pre-schema validator has already produced a clearer error or warning for.
+   */
+  flaggedInstancePaths = [];
   reportError(message) {
     this.errors.push({ message });
   }
   reportWarning(message) {
     this.warnings.push({ message });
+  }
+  flagInstancePath(path) {
+    if (!this.flaggedInstancePaths.includes(path)) {
+      this.flaggedInstancePaths.push(path);
+    }
   }
 };
 
@@ -24822,6 +24921,9 @@ var OpenAPISpecificationValidator = class extends SpecificationValidator {
     super();
     this.api = api;
     this.rules = rules;
+  }
+  runPreSchemaChecks() {
+    this.checkSecuritySchemes();
   }
   run() {
     const operationIds = [];
@@ -24847,8 +24949,10 @@ var OpenAPISpecificationValidator = class extends SpecificationValidator {
       }
     }
     if (isOpenAPI31(this.api)) {
-      if (!Object.keys(this.api.paths || {}).length && !Object.keys(this.api.webhooks || {}).length) {
-        this.reportError("OpenAPI 3.1 definitions must contain at least one entry in either `paths` or `webhook`.");
+      if (!Object.keys(this.api.paths || {}).length && !Object.keys(this.api.webhooks || {}).length && !Object.keys(this.api.components || {}).length) {
+        this.reportError(
+          "OpenAPI 3.1 definitions must contain at least one entry in either `paths`, `webhooks`, or `components`."
+        );
       }
     }
   }
@@ -24956,14 +25060,36 @@ var OpenAPISpecificationValidator = class extends SpecificationValidator {
       if ("$ref" in param) {
         return;
       }
+      const parameterId = `${operationId}/parameters/${param.name}`;
       if (!param.schema && param.content) {
+        this.validateParameterContent(param.content, parameterId);
         return;
       } else if ("$ref" in param.schema) {
         return;
       }
-      const parameterId = `${operationId}/parameters/${param.name}`;
       this.validateSchema(param.schema, parameterId);
     });
+  }
+  /**
+   * Validates parameter content object.
+   * Note: The requirement for exactly one media type is already enforced by the OpenAPI JSON schema.
+   */
+  validateParameterContent(content, parameterId) {
+    const mediaTypes = Object.keys(content);
+    if (mediaTypes.length !== 1) {
+      this.reportError(
+        `\`${parameterId}\` must have exactly one media type in \`content\`, but found ${mediaTypes.length}.`
+      );
+      return;
+    }
+    const mediaType = mediaTypes[0];
+    const contentSchema = content[mediaType].schema;
+    if (contentSchema) {
+      if ("$ref" in contentSchema) {
+        return;
+      }
+      this.validateSchema(contentSchema, `${parameterId}/content/${mediaType}/schema`);
+    }
   }
   /**
    * Validates the given response object.
@@ -25014,6 +25140,119 @@ var OpenAPISpecificationValidator = class extends SpecificationValidator {
     }
   }
   /**
+   * Validates security schemes in `components.securitySchemes` against their declared `type`.
+   *
+   * AJV uses a `oneOf` schema to validate security schemes, so when a scheme is malformed AJV
+   * fails every branch and produces overwhelming, unhelpful errors. This pre-AJV pass surfaces
+   * a single targeted error per problem.
+   *
+   * @see {@link https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#security-scheme-object}
+   */
+  checkSecuritySchemes() {
+    const securitySchemes = this.api.components?.securitySchemes;
+    if (!securitySchemes) {
+      return;
+    }
+    const schemeTypeProps = {
+      apiKey: {
+        required: ["name", "in"],
+        foreign: { scheme: "http", bearerFormat: "http", flows: "oauth2", openIdConnectUrl: "openIdConnect" }
+      },
+      http: {
+        required: ["scheme"],
+        foreign: { name: "apiKey", in: "apiKey", flows: "oauth2", openIdConnectUrl: "openIdConnect" }
+      },
+      oauth2: {
+        required: ["flows"],
+        foreign: {
+          name: "apiKey",
+          in: "apiKey",
+          scheme: "http",
+          bearerFormat: "http",
+          openIdConnectUrl: "openIdConnect"
+        }
+      },
+      openIdConnect: {
+        required: ["openIdConnectUrl"],
+        foreign: { name: "apiKey", in: "apiKey", scheme: "http", bearerFormat: "http", flows: "oauth2" }
+      },
+      mutualTLS: {
+        required: [],
+        foreign: {
+          name: "apiKey",
+          in: "apiKey",
+          scheme: "http",
+          bearerFormat: "http",
+          flows: "oauth2",
+          openIdConnectUrl: "openIdConnect"
+        }
+      }
+    };
+    Object.keys(securitySchemes).forEach((name) => {
+      const scheme = securitySchemes[name];
+      if ("$ref" in scheme) {
+        return;
+      }
+      const schemeId = `/components/securitySchemes/${name}`;
+      const reportIssue = (message) => this.reportSecuritySchemeIssue(message, schemeId);
+      if (!("type" in scheme) || !scheme.type) {
+        reportIssue(
+          `\`${schemeId}\` is missing required property \`type\`. Must be one of: \`apiKey\`, \`http\`, \`oauth2\`, \`openIdConnect\`, \`mutualTLS\`.`
+        );
+        return;
+      }
+      const type = scheme.type;
+      if (type === "basic") {
+        reportIssue(
+          `\`${schemeId}\` uses \`type: basic\`, which is a Swagger 2.0 value. In OpenAPI 3.x use \`type: http\` with \`scheme: basic\` instead.`
+        );
+        return;
+      }
+      if (!(type in schemeTypeProps)) {
+        reportIssue(
+          `\`${schemeId}\` has an invalid \`type\`: \`${type}\`. Must be one of: \`apiKey\`, \`http\`, \`oauth2\`, \`openIdConnect\`, \`mutualTLS\`.`
+        );
+        return;
+      }
+      const config = schemeTypeProps[type];
+      config.required.forEach((prop) => {
+        if (!(prop in scheme)) {
+          reportIssue(`\`${schemeId}\` (\`type: ${type}\`) is missing required property \`${prop}\`.`);
+        }
+      });
+      Object.entries(config.foreign).forEach(([prop, ownerType]) => {
+        if (prop in scheme) {
+          reportIssue(
+            `\`${schemeId}\` (\`type: ${type}\`) includes \`${prop}\`, which is only valid for \`type: ${ownerType}\` schemes.`
+          );
+        }
+      });
+      if (type === "apiKey" && typeof scheme.in === "string") {
+        const validIn = ["query", "header", "cookie"];
+        if (!validIn.includes(scheme.in)) {
+          reportIssue(
+            `\`${schemeId}\` has an invalid \`in\` value: \`${scheme.in}\`. Must be one of: \`query\`, \`header\`, \`cookie\`.`
+          );
+        }
+      }
+      if (type === "oauth2" && scheme.flows && typeof scheme.flows === "object") {
+        if (Object.keys(scheme.flows).length === 0) {
+          reportIssue(
+            `\`${schemeId}\` has empty \`flows\`. At least one grant type is required: \`implicit\`, \`password\`, \`clientCredentials\`, or \`authorizationCode\`.`
+          );
+        }
+      }
+    });
+  }
+  reportSecuritySchemeIssue(message, schemeId) {
+    this.flagInstancePath(schemeId);
+    if (this.rules["invalid-security-scheme-properties"] === "warning") {
+      this.reportWarning(message);
+    } else {
+      this.reportError(message);
+    }
+  }
+  /**
    * Checks the given parameter list for duplicates.
    *
    */
@@ -25046,6 +25285,9 @@ var SwaggerSpecificationValidator = class extends SpecificationValidator {
     super();
     this.api = api;
     this.rules = rules;
+  }
+  runPreSchemaChecks() {
+    this.checkSecurityDefinitions();
   }
   run() {
     const operationIds = [];
@@ -25263,23 +25505,9 @@ var SwaggerSpecificationValidator = class extends SpecificationValidator {
    *
    */
   validateRequiredPropertiesExist(schema, schemaId) {
-    function collectProperties(schemaObj, props) {
-      if (schemaObj.properties) {
-        Object.keys(schemaObj.properties).forEach((property) => {
-          if (schemaObj.properties.hasOwnProperty(property)) {
-            props[property] = schemaObj.properties[property];
-          }
-        });
-      }
-      if (schemaObj.allOf) {
-        schemaObj.allOf.forEach((parent) => {
-          collectProperties(parent, props);
-        });
-      }
-    }
     if (schema.required && Array.isArray(schema.required)) {
       const props = {};
-      collectProperties(schema, props);
+      this.collectProperties(schema, props);
       schema.required.forEach((requiredProperty) => {
         if (!props[requiredProperty]) {
           const error = `Property \`${requiredProperty}\` is listed as required but does not exist in \`${schemaId}\`.`;
@@ -25290,6 +25518,66 @@ var SwaggerSpecificationValidator = class extends SpecificationValidator {
           }
         }
       });
+    }
+  }
+  /**
+   * Recursively collects all properties of a schema and its ancestors. They are added to the
+   * supplied `props` object.
+   *
+   */
+  collectProperties(schemaObj, props) {
+    if (schemaObj.properties) {
+      Object.keys(schemaObj.properties).forEach((property) => {
+        if (schemaObj.properties.hasOwnProperty(property)) {
+          props[property] = schemaObj.properties[property];
+        }
+      });
+    }
+    if (schemaObj.allOf) {
+      schemaObj.allOf.forEach((parent) => {
+        this.collectProperties(parent, props);
+      });
+    }
+  }
+  /**
+   * Validates security definitions against their declared `type`.
+   *
+   * AJV uses `oneOf` to validate `securityDefinitions`, so when a definition is malformed AJV
+   * fails every branch and produces overwhelming, unhelpful errors. This pre-AJV pass surfaces
+   * a single targeted error per problem.
+   *
+   * @see {@link https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#security-scheme-object}
+   */
+  checkSecurityDefinitions() {
+    const securityDefinitions = this.api.securityDefinitions;
+    if (!securityDefinitions) {
+      return;
+    }
+    const validApiKeyIn = ["query", "header"];
+    Object.keys(securityDefinitions).forEach((name) => {
+      const definition = securityDefinitions[name];
+      const definitionId = `/securityDefinitions/${name}`;
+      const reportIssue = (message) => this.reportSecuritySchemeIssue(message, definitionId);
+      const type = definition.type;
+      if (type === "http") {
+        reportIssue(
+          `\`${definitionId}\` uses \`type: http\`, which is an OpenAPI 3.x value. In Swagger 2.0 use \`type: basic\` for HTTP Basic auth.`
+        );
+        return;
+      }
+      if (type === "apiKey" && typeof definition.in === "string" && !validApiKeyIn.includes(definition.in)) {
+        reportIssue(
+          `\`${definitionId}\` has an invalid \`in\` value: \`${definition.in}\`. Swagger 2.0 only supports \`query\` or \`header\`.`
+        );
+      }
+    });
+  }
+  reportSecuritySchemeIssue(message, definitionId) {
+    this.flagInstancePath(definitionId);
+    if (this.rules["invalid-security-scheme-properties"] === "warning") {
+      this.reportWarning(message);
+    } else {
+      this.reportError(message);
     }
   }
   /**
@@ -25337,6 +25625,37 @@ function validateSpec(api, rules) {
     warnings: validator.warnings,
     additionalErrors: 0,
     specification: specificationName
+  };
+}
+function validateSpecPreSchema(api, rules) {
+  let validator;
+  const specificationName = getSpecificationName(api);
+  if (chunk_IYQ77VVR_isOpenAPI(api)) {
+    validator = new OpenAPISpecificationValidator(api, rules.openapi);
+  } else {
+    validator = new SwaggerSpecificationValidator(api, rules.swagger);
+  }
+  validator.runPreSchemaChecks();
+  const flaggedInstancePaths = validator.flaggedInstancePaths;
+  if (!validator.errors.length) {
+    return {
+      flaggedInstancePaths,
+      result: {
+        valid: true,
+        warnings: validator.warnings,
+        specification: specificationName
+      }
+    };
+  }
+  return {
+    flaggedInstancePaths,
+    result: {
+      valid: false,
+      errors: validator.errors,
+      warnings: validator.warnings,
+      additionalErrors: 0,
+      specification: specificationName
+    }
   };
 }
 
@@ -25396,8 +25715,38 @@ async function validate(api, options) {
     };
   }
   parserOptions.dereference.circular = circular$RefOption;
-  result = validateSchema(parser.schema, options);
+  const openapiRules = options?.validate?.rules?.openapi;
+  const swaggerRules = options?.validate?.rules?.swagger;
+  const rules = {
+    openapi: {
+      "array-without-items": openapiRules?.["array-without-items"] || "error",
+      "duplicate-non-request-body-parameters": openapiRules?.["duplicate-non-request-body-parameters"] || "error",
+      "duplicate-operation-id": openapiRules?.["duplicate-operation-id"] || "error",
+      "invalid-security-scheme-properties": openapiRules?.["invalid-security-scheme-properties"] || "error",
+      "non-optional-path-parameters": openapiRules?.["non-optional-path-parameters"] || "error",
+      "path-parameters-not-in-parameters": openapiRules?.["path-parameters-not-in-parameters"] || "error",
+      "path-parameters-not-in-path": openapiRules?.["path-parameters-not-in-path"] || "error"
+    },
+    swagger: {
+      "array-without-items": swaggerRules?.["array-without-items"] || "error",
+      "duplicate-non-request-body-parameters": swaggerRules?.["duplicate-non-request-body-parameters"] || "error",
+      "duplicate-operation-id": swaggerRules?.["duplicate-operation-id"] || "error",
+      "invalid-security-scheme-properties": swaggerRules?.["invalid-security-scheme-properties"] || "error",
+      "non-optional-path-parameters": swaggerRules?.["non-optional-path-parameters"] || "error",
+      "path-parameters-not-in-parameters": swaggerRules?.["path-parameters-not-in-parameters"] || "error",
+      "path-parameters-not-in-path": swaggerRules?.["path-parameters-not-in-path"] || "error",
+      "unknown-required-schema-property": swaggerRules?.["unknown-required-schema-property"] || "error"
+    }
+  };
+  const { result: preSchemaResult, flaggedInstancePaths } = validateSpecPreSchema(parser.schema, rules);
+  if (!preSchemaResult.valid) {
+    return preSchemaResult;
+  }
+  result = validateSchema(parser.schema, options, flaggedInstancePaths);
   if (!result.valid) {
+    if (preSchemaResult.warnings.length) {
+      result.warnings = [...preSchemaResult.warnings, ...result.warnings];
+    }
     return result;
   }
   if (parser.$refs?.circular) {
@@ -25409,27 +25758,10 @@ async function validate(api, options) {
       );
     }
   }
-  const openapiRules = options?.validate?.rules?.openapi;
-  const swaggerRules = options?.validate?.rules?.swagger;
-  result = validateSpec(parser.schema, {
-    openapi: {
-      "array-without-items": openapiRules?.["array-without-items"] || "error",
-      "duplicate-non-request-body-parameters": openapiRules?.["duplicate-non-request-body-parameters"] || "error",
-      "duplicate-operation-id": openapiRules?.["duplicate-operation-id"] || "error",
-      "non-optional-path-parameters": openapiRules?.["non-optional-path-parameters"] || "error",
-      "path-parameters-not-in-parameters": openapiRules?.["path-parameters-not-in-parameters"] || "error",
-      "path-parameters-not-in-path": openapiRules?.["path-parameters-not-in-path"] || "error"
-    },
-    swagger: {
-      "array-without-items": swaggerRules?.["array-without-items"] || "error",
-      "duplicate-non-request-body-parameters": swaggerRules?.["duplicate-non-request-body-parameters"] || "error",
-      "duplicate-operation-id": swaggerRules?.["duplicate-operation-id"] || "error",
-      "non-optional-path-parameters": swaggerRules?.["non-optional-path-parameters"] || "error",
-      "path-parameters-not-in-parameters": swaggerRules?.["path-parameters-not-in-parameters"] || "error",
-      "path-parameters-not-in-path": swaggerRules?.["path-parameters-not-in-path"] || "error",
-      "unknown-required-schema-property": swaggerRules?.["unknown-required-schema-property"] || "error"
-    }
-  });
+  result = validateSpec(parser.schema, rules);
+  if (preSchemaResult.warnings.length) {
+    result.warnings = [...preSchemaResult.warnings, ...result.warnings];
+  }
   return result;
 }
 function compileErrors(result) {
@@ -25456,7 +25788,14 @@ function compileErrors(result) {
 }
 
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./swagger-validator.mjs
+
+/***/ }),
+
+/***/ 8079:
+/***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony import */ var _readme_openapi_parser__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6730);
 
 
 let url;
@@ -25467,7 +25806,17 @@ if ( process.argv[ 2 ] ) {
 	throw new Error( 'URL is required' );
 }
 
-validate( url )
+const source = /^https?:\/\//i.test( url )
+	? await fetch( url ).then( response => {
+		if ( ! response.ok ) {
+			throw new Error( `Failed to fetch ${ url }: ${ response.status } ${ response.statusText }` );
+		}
+
+		return response.json();
+	} )
+	: url;
+
+(0,_readme_openapi_parser__WEBPACK_IMPORTED_MODULE_0__/* .validate */ .tf)( source, { resolve: { external: true, file: true } } )
 	.then( result => {
 		if ( result.valid ) {
 			console.log( 'The API definition is valid!' );
@@ -25487,3 +25836,209 @@ validate( url )
 		throw err;
 	} );
 
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
+/***/ 6337:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"id":"http://json-schema.org/draft-04/schema#","$schema":"http://json-schema.org/draft-04/schema#","description":"Core schema meta-schema","definitions":{"schemaArray":{"type":"array","minItems":1,"items":{"$ref":"#"}},"positiveInteger":{"type":"integer","minimum":0},"positiveIntegerDefault0":{"allOf":[{"$ref":"#/definitions/positiveInteger"},{"default":0}]},"simpleTypes":{"enum":["array","boolean","integer","null","number","object","string"]},"stringArray":{"type":"array","items":{"type":"string"},"minItems":1,"uniqueItems":true}},"type":"object","properties":{"id":{"type":"string","format":"uri"},"$schema":{"type":"string","format":"uri"},"title":{"type":"string"},"description":{"type":"string"},"default":{},"multipleOf":{"type":"number","minimum":0,"exclusiveMinimum":true},"maximum":{"type":"number"},"exclusiveMaximum":{"type":"boolean","default":false},"minimum":{"type":"number"},"exclusiveMinimum":{"type":"boolean","default":false},"maxLength":{"$ref":"#/definitions/positiveInteger"},"minLength":{"$ref":"#/definitions/positiveIntegerDefault0"},"pattern":{"type":"string","format":"regex"},"additionalItems":{"anyOf":[{"type":"boolean"},{"$ref":"#"}],"default":{}},"items":{"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/schemaArray"}],"default":{}},"maxItems":{"$ref":"#/definitions/positiveInteger"},"minItems":{"$ref":"#/definitions/positiveIntegerDefault0"},"uniqueItems":{"type":"boolean","default":false},"maxProperties":{"$ref":"#/definitions/positiveInteger"},"minProperties":{"$ref":"#/definitions/positiveIntegerDefault0"},"required":{"$ref":"#/definitions/stringArray"},"additionalProperties":{"anyOf":[{"type":"boolean"},{"$ref":"#"}],"default":{}},"definitions":{"type":"object","additionalProperties":{"$ref":"#"},"default":{}},"properties":{"type":"object","additionalProperties":{"$ref":"#"},"default":{}},"patternProperties":{"type":"object","additionalProperties":{"$ref":"#"},"default":{}},"dependencies":{"type":"object","additionalProperties":{"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/stringArray"}]}},"enum":{"type":"array","minItems":1,"uniqueItems":true},"type":{"anyOf":[{"$ref":"#/definitions/simpleTypes"},{"type":"array","items":{"$ref":"#/definitions/simpleTypes"},"minItems":1,"uniqueItems":true}]},"allOf":{"$ref":"#/definitions/schemaArray"},"anyOf":{"$ref":"#/definitions/schemaArray"},"oneOf":{"$ref":"#/definitions/schemaArray"},"not":{"$ref":"#"}},"dependencies":{"exclusiveMaximum":["maximum"],"exclusiveMinimum":["minimum"]},"default":{}}');
+
+/***/ }),
+
+/***/ 3837:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$id":"https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#","description":"Meta-schema for $data reference (JSON AnySchema extension proposal)","type":"object","required":["$data"],"properties":{"$data":{"type":"string","anyOf":[{"format":"relative-json-pointer"},{"format":"json-pointer"}]}},"additionalProperties":false}');
+
+/***/ }),
+
+/***/ 7216:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/applicator","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/applicator":true},"$dynamicAnchor":"meta","title":"Applicator vocabulary meta-schema","type":["object","boolean"],"properties":{"prefixItems":{"$ref":"#/$defs/schemaArray"},"items":{"$dynamicRef":"#meta"},"contains":{"$dynamicRef":"#meta"},"additionalProperties":{"$dynamicRef":"#meta"},"properties":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"},"default":{}},"patternProperties":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"},"propertyNames":{"format":"regex"},"default":{}},"dependentSchemas":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"},"default":{}},"propertyNames":{"$dynamicRef":"#meta"},"if":{"$dynamicRef":"#meta"},"then":{"$dynamicRef":"#meta"},"else":{"$dynamicRef":"#meta"},"allOf":{"$ref":"#/$defs/schemaArray"},"anyOf":{"$ref":"#/$defs/schemaArray"},"oneOf":{"$ref":"#/$defs/schemaArray"},"not":{"$dynamicRef":"#meta"}},"$defs":{"schemaArray":{"type":"array","minItems":1,"items":{"$dynamicRef":"#meta"}}}}');
+
+/***/ }),
+
+/***/ 8226:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/content","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/content":true},"$dynamicAnchor":"meta","title":"Content vocabulary meta-schema","type":["object","boolean"],"properties":{"contentEncoding":{"type":"string"},"contentMediaType":{"type":"string"},"contentSchema":{"$dynamicRef":"#meta"}}}');
+
+/***/ }),
+
+/***/ 518:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/core","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/core":true},"$dynamicAnchor":"meta","title":"Core vocabulary meta-schema","type":["object","boolean"],"properties":{"$id":{"$ref":"#/$defs/uriReferenceString","$comment":"Non-empty fragments not allowed.","pattern":"^[^#]*#?$"},"$schema":{"$ref":"#/$defs/uriString"},"$ref":{"$ref":"#/$defs/uriReferenceString"},"$anchor":{"$ref":"#/$defs/anchorString"},"$dynamicRef":{"$ref":"#/$defs/uriReferenceString"},"$dynamicAnchor":{"$ref":"#/$defs/anchorString"},"$vocabulary":{"type":"object","propertyNames":{"$ref":"#/$defs/uriString"},"additionalProperties":{"type":"boolean"}},"$comment":{"type":"string"},"$defs":{"type":"object","additionalProperties":{"$dynamicRef":"#meta"}}},"$defs":{"anchorString":{"type":"string","pattern":"^[A-Za-z_][-A-Za-z0-9._]*$"},"uriString":{"type":"string","format":"uri"},"uriReferenceString":{"type":"string","format":"uri-reference"}}}');
+
+/***/ }),
+
+/***/ 4588:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/format-annotation","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/format-annotation":true},"$dynamicAnchor":"meta","title":"Format vocabulary meta-schema for annotation results","type":["object","boolean"],"properties":{"format":{"type":"string"}}}');
+
+/***/ }),
+
+/***/ 5707:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/meta-data","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/meta-data":true},"$dynamicAnchor":"meta","title":"Meta-data vocabulary meta-schema","type":["object","boolean"],"properties":{"title":{"type":"string"},"description":{"type":"string"},"default":true,"deprecated":{"type":"boolean","default":false},"readOnly":{"type":"boolean","default":false},"writeOnly":{"type":"boolean","default":false},"examples":{"type":"array","items":true}}}');
+
+/***/ }),
+
+/***/ 9547:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/unevaluated","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/unevaluated":true},"$dynamicAnchor":"meta","title":"Unevaluated applicator vocabulary meta-schema","type":["object","boolean"],"properties":{"unevaluatedItems":{"$dynamicRef":"#meta"},"unevaluatedProperties":{"$dynamicRef":"#meta"}}}');
+
+/***/ }),
+
+/***/ 7082:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/meta/validation","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/validation":true},"$dynamicAnchor":"meta","title":"Validation vocabulary meta-schema","type":["object","boolean"],"properties":{"type":{"anyOf":[{"$ref":"#/$defs/simpleTypes"},{"type":"array","items":{"$ref":"#/$defs/simpleTypes"},"minItems":1,"uniqueItems":true}]},"const":true,"enum":{"type":"array","items":true},"multipleOf":{"type":"number","exclusiveMinimum":0},"maximum":{"type":"number"},"exclusiveMaximum":{"type":"number"},"minimum":{"type":"number"},"exclusiveMinimum":{"type":"number"},"maxLength":{"$ref":"#/$defs/nonNegativeInteger"},"minLength":{"$ref":"#/$defs/nonNegativeIntegerDefault0"},"pattern":{"type":"string","format":"regex"},"maxItems":{"$ref":"#/$defs/nonNegativeInteger"},"minItems":{"$ref":"#/$defs/nonNegativeIntegerDefault0"},"uniqueItems":{"type":"boolean","default":false},"maxContains":{"$ref":"#/$defs/nonNegativeInteger"},"minContains":{"$ref":"#/$defs/nonNegativeInteger","default":1},"maxProperties":{"$ref":"#/$defs/nonNegativeInteger"},"minProperties":{"$ref":"#/$defs/nonNegativeIntegerDefault0"},"required":{"$ref":"#/$defs/stringArray"},"dependentRequired":{"type":"object","additionalProperties":{"$ref":"#/$defs/stringArray"}}},"$defs":{"nonNegativeInteger":{"type":"integer","minimum":0},"nonNegativeIntegerDefault0":{"$ref":"#/$defs/nonNegativeInteger","default":0},"simpleTypes":{"enum":["array","boolean","integer","null","number","object","string"]},"stringArray":{"type":"array","items":{"type":"string"},"uniqueItems":true,"default":[]}}}');
+
+/***/ }),
+
+/***/ 1678:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://json-schema.org/draft/2020-12/schema","$vocabulary":{"https://json-schema.org/draft/2020-12/vocab/core":true,"https://json-schema.org/draft/2020-12/vocab/applicator":true,"https://json-schema.org/draft/2020-12/vocab/unevaluated":true,"https://json-schema.org/draft/2020-12/vocab/validation":true,"https://json-schema.org/draft/2020-12/vocab/meta-data":true,"https://json-schema.org/draft/2020-12/vocab/format-annotation":true,"https://json-schema.org/draft/2020-12/vocab/content":true},"$dynamicAnchor":"meta","title":"Core and Validation specifications meta-schema","allOf":[{"$ref":"meta/core"},{"$ref":"meta/applicator"},{"$ref":"meta/unevaluated"},{"$ref":"meta/validation"},{"$ref":"meta/meta-data"},{"$ref":"meta/format-annotation"},{"$ref":"meta/content"}],"type":["object","boolean"],"$comment":"This meta-schema also defines keywords that have appeared in previous drafts in order to prevent incompatible extensions as they remain in common use.","properties":{"definitions":{"$comment":"\\"definitions\\" has been replaced by \\"$defs\\".","type":"object","additionalProperties":{"$dynamicRef":"#meta"},"deprecated":true,"default":{}},"dependencies":{"$comment":"\\"dependencies\\" has been split and replaced by \\"dependentSchemas\\" and \\"dependentRequired\\" in order to serve their differing semantics.","type":"object","additionalProperties":{"anyOf":[{"$dynamicRef":"#meta"},{"$ref":"meta/validation#/$defs/stringArray"}]},"deprecated":true,"default":{}},"$recursiveAnchor":{"$comment":"\\"$recursiveAnchor\\" has been replaced by \\"$dynamicAnchor\\".","$ref":"meta/core#/$defs/anchorString","deprecated":true},"$recursiveRef":{"$comment":"\\"$recursiveRef\\" has been replaced by \\"$dynamicRef\\".","$ref":"meta/core#/$defs/uriReferenceString","deprecated":true}}}');
+
+/***/ })
+
+/******/ });
+/************************************************************************/
+/******/ // The module cache
+/******/ var __webpack_module_cache__ = {};
+/******/ 
+/******/ // The require function
+/******/ function __nccwpck_require__(moduleId) {
+/******/ 	// Check if module is in cache
+/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 	if (cachedModule !== undefined) {
+/******/ 		return cachedModule.exports;
+/******/ 	}
+/******/ 	// Create a new module (and put it into the cache)
+/******/ 	var module = __webpack_module_cache__[moduleId] = {
+/******/ 		// no module.id needed
+/******/ 		// no module.loaded needed
+/******/ 		exports: {}
+/******/ 	};
+/******/ 
+/******/ 	// Execute the module function
+/******/ 	var threw = true;
+/******/ 	try {
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 		threw = false;
+/******/ 	} finally {
+/******/ 		if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 	}
+/******/ 
+/******/ 	// Return the exports of the module
+/******/ 	return module.exports;
+/******/ }
+/******/ 
+/************************************************************************/
+/******/ /* webpack/runtime/async module */
+/******/ (() => {
+/******/ 	var webpackQueues = typeof Symbol === "function" ? Symbol("webpack queues") : "__webpack_queues__";
+/******/ 	var webpackExports = typeof Symbol === "function" ? Symbol("webpack exports") : "__webpack_exports__";
+/******/ 	var webpackError = typeof Symbol === "function" ? Symbol("webpack error") : "__webpack_error__";
+/******/ 	var resolveQueue = (queue) => {
+/******/ 		if(queue && queue.d < 1) {
+/******/ 			queue.d = 1;
+/******/ 			queue.forEach((fn) => (fn.r--));
+/******/ 			queue.forEach((fn) => (fn.r-- ? fn.r++ : fn()));
+/******/ 		}
+/******/ 	}
+/******/ 	var wrapDeps = (deps) => (deps.map((dep) => {
+/******/ 		if(dep !== null && typeof dep === "object") {
+/******/ 			if(dep[webpackQueues]) return dep;
+/******/ 			if(dep.then) {
+/******/ 				var queue = [];
+/******/ 				queue.d = 0;
+/******/ 				dep.then((r) => {
+/******/ 					obj[webpackExports] = r;
+/******/ 					resolveQueue(queue);
+/******/ 				}, (e) => {
+/******/ 					obj[webpackError] = e;
+/******/ 					resolveQueue(queue);
+/******/ 				});
+/******/ 				var obj = {};
+/******/ 				obj[webpackQueues] = (fn) => (fn(queue));
+/******/ 				return obj;
+/******/ 			}
+/******/ 		}
+/******/ 		var ret = {};
+/******/ 		ret[webpackQueues] = x => {};
+/******/ 		ret[webpackExports] = dep;
+/******/ 		return ret;
+/******/ 	}));
+/******/ 	__nccwpck_require__.a = (module, body, hasAwait) => {
+/******/ 		var queue;
+/******/ 		hasAwait && ((queue = []).d = -1);
+/******/ 		var depQueues = new Set();
+/******/ 		var exports = module.exports;
+/******/ 		var currentDeps;
+/******/ 		var outerResolve;
+/******/ 		var reject;
+/******/ 		var promise = new Promise((resolve, rej) => {
+/******/ 			reject = rej;
+/******/ 			outerResolve = resolve;
+/******/ 		});
+/******/ 		promise[webpackExports] = exports;
+/******/ 		promise[webpackQueues] = (fn) => (queue && fn(queue), depQueues.forEach(fn), promise["catch"](x => {}));
+/******/ 		module.exports = promise;
+/******/ 		body((deps) => {
+/******/ 			currentDeps = wrapDeps(deps);
+/******/ 			var fn;
+/******/ 			var getResult = () => (currentDeps.map((d) => {
+/******/ 				if(d[webpackError]) throw d[webpackError];
+/******/ 				return d[webpackExports];
+/******/ 			}))
+/******/ 			var promise = new Promise((resolve) => {
+/******/ 				fn = () => (resolve(getResult));
+/******/ 				fn.r = 0;
+/******/ 				var fnQueue = (q) => (q !== queue && !depQueues.has(q) && (depQueues.add(q), q && !q.d && (fn.r++, q.push(fn))));
+/******/ 				currentDeps.map((dep) => (dep[webpackQueues](fnQueue)));
+/******/ 			});
+/******/ 			return fn.r ? promise : getResult();
+/******/ 		}, (err) => ((err ? reject(promise[webpackError] = err) : outerResolve(exports)), resolveQueue(queue)));
+/******/ 		queue && queue.d < 0 && (queue.d = 0);
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__nccwpck_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			}
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/compat */
+/******/ 
+/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
+/******/ 
+/************************************************************************/
+/******/ 
+/******/ // startup
+/******/ // Load entry module and return exports
+/******/ // This entry module used 'module' so it can't be inlined
+/******/ var __webpack_exports__ = __nccwpck_require__(8079);
+/******/ __webpack_exports__ = await __webpack_exports__;
+/******/ 
