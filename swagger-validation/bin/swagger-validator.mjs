@@ -8,7 +8,17 @@ if ( process.argv[ 2 ] ) {
 	throw new Error( 'URL is required' );
 }
 
-validate( url )
+const source = /^https?:\/\//i.test( url )
+	? await fetch( url ).then( response => {
+		if ( ! response.ok ) {
+			throw new Error( `Failed to fetch ${ url }: ${ response.status } ${ response.statusText }` );
+		}
+
+		return response.json();
+	} )
+	: url;
+
+validate( source, { resolve: { external: true, file: true } } )
 	.then( result => {
 		if ( result.valid ) {
 			console.log( 'The API definition is valid!' );
