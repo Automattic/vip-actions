@@ -1,7 +1,0 @@
-{
-  "extends": [
-    "plugin:@automattic/wpvip/base",
-    "plugin:@automattic/wpvip/testing",
-    "plugin:@automattic/wpvip/typescript"
-  ]
-}
