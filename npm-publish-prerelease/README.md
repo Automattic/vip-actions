@@ -7,6 +7,7 @@ This action will publish a prerelease version of the package to npm with the spe
 * `NPM_TOKEN`: (required) the npm token used to publish the package.
 * `GH_TOKEN`: (optional) the GitHub access token to use (default: `${{ github.token }}`).
 * `node-version`: (optional) the Node.js version to use for the Action.
+* `npm-version`: (optional) the npm version to use for the Action (default: `latest`).
 * `NPM_TAG`: (optional) NPM [distribution tag](https://docs.npmjs.com/adding-dist-tags-to-packages) (default: `next`).
 * `PROVENANCE`: (optional) set to `true` to generate provenance statement for the published package. Requires the `id-token: write` permission.
 
