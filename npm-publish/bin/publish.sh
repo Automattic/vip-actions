@@ -26,10 +26,6 @@ else
 	echo "✅ Determined only .json files are changed in PR"
 fi
 
-# Update npm
-echo_title "Updating npm to latest version"
-npm install -g npm
-
 # Determine and validate release type
 echo_title "Determining and validating NPM release type"
 NPM_VERSION_TYPE=$(echo "$PR_HEAD_REF" | awk -F '/' '{print $2}' | awk -F '-' '{print $1}')

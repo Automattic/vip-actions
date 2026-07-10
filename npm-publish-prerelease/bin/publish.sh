@@ -18,10 +18,6 @@ LOCAL_VERSION=$(node -p "require('./package.json').version")
 LOCAL_BRANCH=$(git branch --show-current)
 echo "✅ Found ${LOCAL_NAME} ${LOCAL_VERSION} on branch ${LOCAL_BRANCH}"
 
-# Update npm
-echo_title "Updating npm to latest version"
-npm install -g npm
-
 # If not using Trusted Publishing, validate npm is logged in and ready
 if [ "${USE_TRUSTED_PUBLISHING:-}" != "true" ]; then
 	echo_title "Checking npm auth"
