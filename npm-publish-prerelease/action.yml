@@ -2,6 +2,12 @@
 name: Publish a prerelease version of the package to npm
 description: This action automates various aspects of publishing a package to the npm registry including running tests, versioning, and tagging.
 inputs:
+  STAGE_PACKAGE:
+    description: 'Pack from a fresh rsync copy and publish the validated tarball without rerunning hooks (requires rsync and Python 3).'
+    default: 'false'
+  SMOKE_SCRIPT:
+    description: 'Optional npm script to run inside the staged tarball; requires STAGE_PACKAGE and bundled dependencies.'
+    default: ''
   USE_TRUSTED_PUBLISHING:
     description: 'Is this package configured to use the npm OIDC-based Trusted Publishing feature?'
     required: false
@@ -63,6 +69,8 @@ runs:
       # @see https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepsrun
       run: ${{ github.action_path }}/bin/publish.sh
       env:
+        STAGE_PACKAGE: ${{ inputs.STAGE_PACKAGE }}
+        SMOKE_SCRIPT: ${{ inputs.SMOKE_SCRIPT }}
         USE_TRUSTED_PUBLISHING: ${{ inputs.USE_TRUSTED_PUBLISHING }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}
         PROVENANCE: ${{ inputs.PROVENANCE }}

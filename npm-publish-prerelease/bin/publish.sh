@@ -65,10 +65,22 @@ if [ -t 0 ]; then
 	esac
 fi
 
-# Publish with Dry Run
-echo_title "npm publish (dry-run)"
-npm publish --access public --tag "${NPM_TAG}" --dry-run
-echo "✅ Dry run looks good"
+# Stage once after building/testing; retain the legacy path for other consumers.
+PACKAGE_TARBALL=''
+if [ "${STAGE_PACKAGE:-false}" = 'true' ]; then
+	echo_title "Pack and validate staged npm artifact"
+	artifact_dir=$(mktemp -d "${TMPDIR:-/tmp}/npm-publish-artifact.XXXXXXXX")
+	trap 'rm -rf "$artifact_dir"' EXIT
+	script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+	PACKAGE_TARBALL=$(bash "$script_dir/../../npm-pack-staged/bin/pack.sh" "$PWD" "$artifact_dir" "${NPM_TAG}" "${SMOKE_SCRIPT:-}")
+	npm publish "$PACKAGE_TARBALL" --access public --tag "${NPM_TAG}" --dry-run --ignore-scripts --loglevel error
+else
+	# Publish with Dry Run
+	echo_title "npm publish (dry-run)"
+	npm publish --access public --tag "${NPM_TAG}" --dry-run
+	echo "✅ Dry run looks good"
+
+fi
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
@@ -82,6 +94,11 @@ if [ "${PROVENANCE}" = "true" ] && [ "${CI:-}" = "true" ] && [ "${GITHUB_ACTIONS
 	OPTIONS="${OPTIONS} --provenance"
 fi
 
-# shellcheck disable=SC2086 # We want to pass the options as a string
-npm publish ${OPTIONS}
+if [ -n "$PACKAGE_TARBALL" ]; then
+	# shellcheck disable=SC2086 # OPTIONS contains the existing publish flags.
+	npm publish "$PACKAGE_TARBALL" ${OPTIONS} --ignore-scripts --loglevel error
+else
+	# shellcheck disable=SC2086 # OPTIONS contains the existing publish flags.
+	npm publish ${OPTIONS}
+fi
 echo "✅ Successfully published new release for ${LOCAL_NAME} as ${LOCAL_VERSION}"

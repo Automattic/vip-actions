@@ -1,0 +1,26 @@
+name: Pack npm package from a fresh staging directory
+description: Copy built dependencies without hard links, pack once, validate and optionally smoke-test the artifact. Does not publish.
+inputs:
+  tag:
+    description: npm tag used by prepublish validation
+    default: latest
+  smoke-script:
+    description: Optional npm script to run inside the extracted tarball (dependencies must be bundled)
+    default: ''
+outputs:
+  tarball:
+    description: Absolute path to the validated tarball
+    value: ${{ steps.pack.outputs.tarball }}
+runs:
+  using: composite
+  steps:
+    - id: pack
+      shell: bash
+      env:
+        PACK_SCRIPT: ${{ github.action_path }}/bin/pack.sh
+        PACK_TAG: ${{ inputs.tag }}
+        SMOKE_SCRIPT: ${{ inputs.smoke-script }}
+      run: |
+        output_dir=$(mktemp -d "$RUNNER_TEMP/npm-artifact.XXXXXXXX")
+        tarball=$(bash "$PACK_SCRIPT" "$GITHUB_WORKSPACE" "$output_dir" "$PACK_TAG" "$SMOKE_SCRIPT")
+        printf 'tarball=%s\n' "$tarball" >> "$GITHUB_OUTPUT"

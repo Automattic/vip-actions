@@ -1,0 +1,28 @@
+name: Test staged npm packaging
+on:
+  pull_request:
+    paths:
+      - 'npm-pack-staged/**'
+      - 'npm-publish/**'
+      - 'npm-publish-prerelease/**'
+      - '.github/workflows/npm-pack-staged.yml'
+  push:
+    branches: [trunk]
+    paths:
+      - 'npm-pack-staged/**'
+      - 'npm-publish/**'
+      - 'npm-publish-prerelease/**'
+      - '.github/workflows/npm-pack-staged.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --global npm@11
+      - run: shellcheck npm-pack-staged/bin/pack.sh npm-publish/bin/publish.sh npm-publish-prerelease/bin/publish.sh
+      - run: python3 -m unittest discover -s npm-pack-staged/tests -v

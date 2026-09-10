@@ -109,10 +109,22 @@ echo "✅ npm install + npm test look good"
 # Confirm y/n (if running locally)
 ### TODO=====================
 
-# Publish with Dry Run
-echo_title "npm publish (dry-run)"
-npm publish --access public --dry-run
-echo "✅ Dry run looks good"
+# Stage once after building/testing; retain the legacy path for other consumers.
+PACKAGE_TARBALL=''
+if [ "${STAGE_PACKAGE:-false}" = 'true' ]; then
+	echo_title "Pack and validate staged npm artifact"
+	artifact_dir=$(mktemp -d "${TMPDIR:-/tmp}/npm-publish-artifact.XXXXXXXX")
+	trap 'rm -rf "$artifact_dir"' EXIT
+	script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+	PACKAGE_TARBALL=$(bash "$script_dir/../../npm-pack-staged/bin/pack.sh" "$PWD" "$artifact_dir" "latest" "${SMOKE_SCRIPT:-}")
+	npm publish "$PACKAGE_TARBALL" --access public --tag "latest" --dry-run --ignore-scripts --loglevel error
+else
+	# Publish with Dry Run
+	echo_title "npm publish (dry-run)"
+	npm publish --access public --dry-run
+	echo "✅ Dry run looks good"
+
+fi
 
 # Publish on GitHub and tag
 echo_title "Publishing a new release on GitHub and tagging"
@@ -126,8 +138,13 @@ if [ "${PROVENANCE}" = "true" ] && [ "${CI:-}" = "true" ] && [ "${GITHUB_ACTIONS
 	OPTIONS="${OPTIONS} --provenance"
 fi
 
-# shellcheck disable=SC2086 # We want to pass the options as multiple arguments
-npm publish ${OPTIONS}
+if [ -n "$PACKAGE_TARBALL" ]; then
+	# shellcheck disable=SC2086 # OPTIONS contains the existing publish flags.
+	npm publish "$PACKAGE_TARBALL" ${OPTIONS} --tag latest --ignore-scripts --loglevel error
+else
+	# shellcheck disable=SC2086 # OPTIONS contains the existing publish flags.
+	npm publish ${OPTIONS}
+fi
 echo "✅ Successfully published new '$NPM_VERSION_TYPE' release for $LOCAL_NAME as $LOCAL_VERSION"
 
 # Version bump to dev - create a branch and a PR, then merge
@@ -135,7 +152,7 @@ if [ "$LOCAL_BRANCH" == "$RELEASE_BRANCH" ] && [ "${SKIP_BUMP_TO_DEV:-}" != 'tru
 	echo_title "npm version (to next dev)"
 
 	NEXT_LOCAL_DEV_VERSION_TYPE="prepatch"
-	NEXT_LOCAL_DEV_VERSION=$( npm version --no-git-tag-version --preid "dev" "$NEXT_LOCAL_DEV_VERSION_TYPE" )
+	NEXT_LOCAL_DEV_VERSION=$( npm --silent version --no-git-tag-version --preid "dev" "$NEXT_LOCAL_DEV_VERSION_TYPE" )
 	echo "✅ Determined next local dev version: $NEXT_LOCAL_DEV_VERSION"
 
 	# Configure git
