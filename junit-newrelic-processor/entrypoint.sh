@@ -23,7 +23,7 @@ xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
 if [ "${GH_EVENT}" = "pull_request" ]; then
   GH_HEAD_BRANCH="${GITHUB_PULL_REQUEST_HEAD_BRANCH}"
   GH_BASE_BRANCH="${GITHUB_PULL_REQUEST_BASE_BRANCH}"
-  GH_PR_URL="https://github.com/${GH_PROJECT}/pulls/${GH_PR_NUMBER}"
+  GH_PR_URL="${GITHUB_SERVER_URL:-https://github.com}/${GH_PROJECT}/pulls/${GH_PR_NUMBER}"
 
   xmlstarlet ed -O --inplace --insert "/testsuites/testsuite/testcase" \
     --type attr -n "trigger_branch" -v "${GH_HEAD_BRANCH}" "${NEW_RELIC_TEST_OUTPUT_PATH}"
