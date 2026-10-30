@@ -27,7 +27,7 @@ runs:
   using: composite
   steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
@@ -36,7 +36,7 @@ runs:
 
     - name: Set up Node.js environment using supplied Node.js version
       id: setup-node
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
@@ -44,7 +44,7 @@ runs:
         cache-dependency-path: ${{ format( '{0}/{1}', inputs.working-directory, 'package*.json' ) }}
 
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       id: cache-node-modules
       with:
         path: ${{ inputs.working-directory }}/node_modules
