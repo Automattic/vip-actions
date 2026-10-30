@@ -48,8 +48,18 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # `uses:` can't choose an action by host, and setup-php has a different name on
+    # GitHub Enterprise, so fetch it by name for this host and run it from a local path.
+    - name: Fetch setup-php
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      with:
+        repository: ${{ github.server_url == 'https://github.com' && 'shivammathur/setup-php' || 'third-party-actions/shivammathur-setup-php' }}
+        ref: eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        path: .vip-actions/setup-php
+        persist-credentials: false
+
     - name: Setup PHP
-      uses: "shivammathur/setup-php@v2"
+      uses: ./.vip-actions/setup-php
       with:
         php-version: "7.4"
 
