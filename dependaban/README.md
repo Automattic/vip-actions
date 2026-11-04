@@ -9,6 +9,7 @@ NPM packages can use scripts like `preinstall` and `postinstall` to run arbitrar
 ## Inputs
 
 - `skip-scripts-check`: Set to `"true"` to disable the check. Default: `"false"`
+- `node-version`: Node.js version used to run the check. Default: `"26"`. Avoid aliases such as `lts/*` on GitHub Enterprise Server: setup-node resolves them through an unauthenticated GitHub API call that hits the shared runner IP's rate limit.
 
 ## Example
 

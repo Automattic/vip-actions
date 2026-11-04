@@ -8,6 +8,10 @@ inputs:
     description: "Skip the check for postinstall scripts (default: false)"
     required: false
     default: "false"
+  node-version:
+    description: "Node.js version used to run the check (default: 26). Aliases like lts/* need a GitHub API lookup, which is rate limited on GitHub Enterprise Server runners."
+    required: false
+    default: "26"
 
 runs:
   using: "composite"
@@ -20,7 +24,7 @@ runs:
     - name: Set up Node.js envirtonment
       uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
-        node-version: "lts/*"
+        node-version: ${{ inputs.node-version }}
         cache: npm
 
     - name: Run can-i-ignore-scripts check
