@@ -1,5 +1,5 @@
 name: 'JUNIT New Relic Processor'
-description: 'Process JUnit XML output and send to New Relic'
+description: 'Deprecated: Process JUnit XML output and send to New Relic. This action is no longer used by VIP projects and will be removed.'
 inputs:
   NEW_RELIC_INGEST_LICENSE_KEY:
     description: 'Your New Relic Ingest License key.'

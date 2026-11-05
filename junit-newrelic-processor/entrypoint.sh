@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "::warning title=junit-newrelic-processor is deprecated::This action will be removed in a future release. Remove the step from your workflow."
+
 export NEW_RELIC_API_KEY=dummy_key
 export NEW_RELIC_REGION="${NEW_RELIC_REGION}"
 export NEW_RELIC_LICENSE_KEY="${NEW_RELIC_INGEST_LICENSE_KEY}"
